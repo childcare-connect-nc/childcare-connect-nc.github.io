@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Provider Portal — ChildCare Connect</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #0E4D4A; --teal-soft: #E3EFEA; --teal-mid: #2A9D8F;
+    --coral: #E76F51; --coral-soft: #FBE6DE; --coral-dark: #C9543A;
+    --cream: #FDFAF5; --ink: #11302E; --body: #4F5D58; --muted: #5C6B66;
+    --line: #E8E0D3; --green: #1D9E75; --amber: #EF9F27; --red: #C0392B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito Sans', system-ui, sans-serif; background: var(--cream); color: var(--body); line-height: 1.65; min-height: 100vh; }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; color: var(--ink); font-weight: 600; line-height: 1.2; }
+  .nav { background: rgba(253,250,245,.95); border-bottom: 1px solid var(--line); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--teal); text-decoration: none; }
+  .logo-mark { width: 34px; height: 34px; background: var(--teal); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+  .logo span { color: var(--coral); }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 40px 20px 80px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 30px; margin-bottom: 20px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+  .tab { flex: 1; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: #fff; font-family: inherit; font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; }
+  .tab.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+  label { display: block; font-size: 13.5px; font-weight: 700; color: var(--ink); margin: 14px 0 5px; }
+  input, select, textarea { width: 100%; padding: 11px 14px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 14.5px; color: var(--ink); background: #fff; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--teal-mid); border-color: transparent; }
+  textarea { min-height: 110px; resize: vertical; }
+  .btn { width: 100%; margin-top: 20px; padding: 13px; border: none; border-radius: 24px; background: var(--coral); color: #fff; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .btn:hover { background: var(--coral-dark); }
+  .btn:disabled { opacity: .6; cursor: wait; }
+  .btn-quiet { background: transparent; color: var(--teal); border: 2px solid var(--teal); }
+  .btn-quiet:hover { background: var(--teal-soft); }
+  .msg { margin-top: 16px; padding: 12px 16px; border-radius: 10px; font-size: 14px; font-weight: 600; display: none; }
+  .msg.err { display: block; background: #FBE9E7; color: var(--red); }
+  .msg.ok { display: block; background: var(--teal-soft); color: var(--teal); }
+  .status { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 700; padding: 5px 14px; border-radius: 16px; }
+  .status.pending { background: #FEF3E2; color: #9A6A12; }
+  .status.live { background: var(--teal-soft); color: var(--teal); }
+  .topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+  .signout { background: none; border: none; font-family: inherit; font-size: 13.5px; font-weight: 700; color: var(--muted); cursor: pointer; text-decoration: underline; }
+  .hint { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  .inq { border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 12px; }
+  .inq .meta { font-size: 12.5px; color: var(--muted); margin-bottom: 6px; }
+  .inq .from { font-weight: 700; color: var(--ink); font-size: 14.5px; }
+  .inq p { font-size: 14px; margin-top: 6px; }
+  .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 18px 0; }
+  #appView, #pendingNote { display: none; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="logo" href="index.html">
+    <span class="logo-mark" aria-hidden="true">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 20.5C12 20.5 4 15.5 4 9.8 4 6.9 6.2 5 8.6 5c1.5 0 2.7.8 3.4 2 .7-1.2 1.9-2 3.4-2C17.8 5 20 6.9 20 9.8c0 5.7-8 10.7-8 10.7z" fill="#F4A88B"/></svg>
+    </span>
+    ChildCare&nbsp;<span>Connect</span>
+  </a>
+  <span style="font-size:13px;font-weight:700;color:var(--muted);">Provider Portal</span>
+</nav>
+
+<div class="wrap">
+
+  <!-- ============ AUTH VIEW ============ -->
+  <div id="authView">
+    <div class="card">
+      <h1 style="font-size:26px;margin-bottom:6px;">Provider sign in</h1>
+      <p style="font-size:14.5px;margin-bottom:18px;">Create your founding provider account or sign back in to manage your listing.</p>
+      <div class="tabs">
+        <button class="tab active" id="tabSignin" type="button">Sign in</button>
+        <button class="tab" id="tabSignup" type="button">Create account</button>
+      </div>
+      <label for="authEmail">Email</label>
+      <input id="authEmail" type="email" autocomplete="email" placeholder="you@yourbusiness.com">
+      <label for="authPass">Password</label>
+      <input id="authPass" type="password" autocomplete="current-password" placeholder="At least 8 characters">
+      <button class="btn" id="authBtn" type="button">Sign in</button>
+      <div class="msg" id="authMsg"></div>
+    </div>
+  </div>
+
+  <!-- ============ APP VIEW (logged in) ============ -->
+  <div id="appView">
+    <div class="topline">
+      <h1 style="font-size:24px;">Your listing</h1>
+      <button class="signout" id="signOut" type="button">Sign out</button>
+    </div>
+    <p id="statusRow" style="margin-bottom:16px;"></p>
+
+    <div class="card" id="pendingNote">
+      <p style="font-size:14px;"><strong style="color:var(--ink);">Thanks for joining as a founding provider!</strong> Your listing is being reviewed. Once approved, it goes live to families automatically — we'll email you when that happens.</p>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:19px;margin-bottom:4px;">Profile details</h2>
+      <p style="font-size:13.5px;">This is what families will see.</p>
+
+      <label for="fBiz">Business or provider name *</label>
+      <input id="fBiz" placeholder="Sunny Days Daycare">
+
+      <label for="fContact">Your name *</label>
+      <input id="fContact" placeholder="First and last name">
+
+      <label for="fPhone">Phone</label>
+      <input id="fPhone" type="tel" placeholder="(910) 555-0100">
+
+      <label for="fCity">City *</label>
+      <select id="fCity">
+        <option value="">Choose a city…</option>
+        <option>Wilmington</option>
+        <option>Raleigh</option>
+        <option>Charlotte</option>
+        <option>Other NC</option>
+      </select>
+
+      <label for="fType">Type of care *</label>
+      <select id="fType">
+        <option value="">Choose one…</option>
+        <option>Licensed daycare center</option>
+        <option>In-home childcare</option>
+        <option>Nanny / babysitter</option>
+        <option>After-school program</option>
+      </select>
+
+      <label for="fAges">Ages served</label>
+      <input id="fAges" placeholder="e.g. Infants to 5 years">
+
+      <label for="fPrice">Price range</label>
+      <input id="fPrice" placeholder="e.g. $150–220/week">
+      <p class="hint">Families consistently say up-front pricing is the #1 thing they want to see.</p>
+
+      <label for="fBio">About you *</label>
+      <textarea id="fBio" placeholder="Tell families about your experience, your space, your approach to care, and anything that makes you special."></textarea>
+
+      <button class="btn" id="saveBtn" type="button">Save listing</button>
+      <div class="msg" id="saveMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2 style="font-size:19px;margin-bottom:4px;">Messages from families</h2>
+      <div id="inqList"><p class="empty">No inquiries yet — they'll appear here once your listing is live.</p></div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const supabase = createClient(
+    'https://jcacedyzmsowclexnxvu.supabase.co',
+    'sb_publishable_wu3vOGLswNb-8eKJ9MLEOg_mdSaiOHH'
+  );
+
+  // ---------- elements ----------
+  const authView = document.getElementById('authView');
+  const appView = document.getElementById('appView');
+  const tabSignin = document.getElementById('tabSignin');
+  const tabSignup = document.getElementById('tabSignup');
+  const authBtn = document.getElementById('authBtn');
+  const authMsg = document.getElementById('authMsg');
+  const saveBtn = document.getElementById('saveBtn');
+  const saveMsg = document.getElementById('saveMsg');
+  let mode = 'signin';
+
+  // ---------- auth tabs ----------
+  tabSignin.onclick = () => setMode('signin');
+  tabSignup.onclick = () => setMode('signup');
+  function setMode(m) {
+    mode = m;
+    tabSignin.classList.toggle('active', m === 'signin');
+    tabSignup.classList.toggle('active', m === 'signup');
+    authBtn.textContent = m === 'signin' ? 'Sign in' : 'Create account';
+    authMsg.className = 'msg';
+  }
+
+  function show(el, text, kind) {
+    el.textContent = text;
+    el.className = 'msg ' + kind;
+  }
+
+  // ---------- sign in / sign up ----------
+  authBtn.onclick = async () => {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPass').value;
+    if (!email || !password) return show(authMsg, 'Enter your email and password.', 'err');
+    if (password.length < 8) return show(authMsg, 'Password needs at least 8 characters.', 'err');
+    authBtn.disabled = true;
+
+    const action = mode === 'signin'
+      ? supabase.auth.signInWithPassword({ email, password })
+      : supabase.auth.signUp({ email, password });
+
+    const { data, error } = await action;
+    authBtn.disabled = false;
+
+    if (error) return show(authMsg, error.message, 'err');
+    if (mode === 'signup' && data.user && !data.session) {
+      return show(authMsg, 'Almost there — check your email and click the confirmation link, then come back and sign in.', 'ok');
+    }
+    enterApp(data.user ?? data.session?.user);
+  };
+
+  // ---------- session restore ----------
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) enterApp(session.user);
+
+  document.getElementById('signOut').onclick = async () => {
+    await supabase.auth.signOut();
+    location.reload();
+  };
+
+  // ---------- app ----------
+  async function enterApp(user) {
+    authView.style.display = 'none';
+    appView.style.display = 'block';
+    await loadProfile(user);
+    await loadInquiries(user);
+  }
+
+  async function loadProfile(user) {
+    const { data: p } = await supabase.from('providers').select('*').eq('id', user.id).maybeSingle();
+    const statusRow = document.getElementById('statusRow');
+    const pendingNote = document.getElementById('pendingNote');
+    if (p) {
+      document.getElementById('fBiz').value = p.business_name ?? '';
+      document.getElementById('fContact').value = p.contact_name ?? '';
+      document.getElementById('fPhone').value = p.phone ?? '';
+      document.getElementById('fCity').value = p.city ?? '';
+      document.getElementById('fType').value = p.care_type ?? '';
+      document.getElementById('fAges').value = p.ages_served ?? '';
+      document.getElementById('fPrice').value = p.price_range ?? '';
+      document.getElementById('fBio').value = p.bio ?? '';
+      if (p.is_approved) {
+        statusRow.innerHTML = '<span class="status live">● Live — visible to families</span>';
+        pendingNote.style.display = 'none';
+      } else {
+        statusRow.innerHTML = '<span class="status pending">● Pending review</span>';
+        pendingNote.style.display = 'block';
+      }
+    } else {
+      statusRow.innerHTML = '<span class="status pending">● No listing yet — fill out your profile below</span>';
+      pendingNote.style.display = 'none';
+    }
+  }
+
+  saveBtn.onclick = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return location.reload();
+
+    const profile = {
+      id: user.id,
+      email: user.email,
+      business_name: document.getElementById('fBiz').value.trim(),
+      contact_name: document.getElementById('fContact').value.trim(),
+      phone: document.getElementById('fPhone').value.trim(),
+      city: document.getElementById('fCity').value,
+      care_type: document.getElementById('fType').value,
+      ages_served: document.getElementById('fAges').value.trim(),
+      price_range: document.getElementById('fPrice').value.trim(),
+      bio: document.getElementById('fBio').value.trim()
+    };
+
+    if (!profile.business_name || !profile.contact_name || !profile.city || !profile.care_type || !profile.bio) {
+      return show(saveMsg, 'Please fill in every field marked with *.', 'err');
+    }
+
+    saveBtn.disabled = true;
+    const { error } = await supabase.from('providers').upsert(profile);
+    saveBtn.disabled = false;
+
+    if (error) return show(saveMsg, 'Could not save: ' + error.message, 'err');
+    show(saveMsg, 'Saved! Your listing is up to date.', 'ok');
+    loadProfile(user);
+  };
+
+  async function loadInquiries(user) {
+    const { data: rows } = await supabase
+      .from('inquiries')
+      .select('*')
+      .eq('provider_id', user.id)
+      .order('created_at', { ascending: false });
+
+    const list = document.getElementById('inqList');
+    if (!rows || rows.length === 0) return;
+    list.innerHTML = rows.map(r => `
+      <div class="inq">
+        <div class="meta">${new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}${r.child_age_range ? ' · Child age: ' + escapeHtml(r.child_age_range) : ''}</div>
+        <div class="from">${escapeHtml(r.parent_name)} — <a href="mailto:${escapeHtml(r.parent_email)}" style="color:var(--teal);">${escapeHtml(r.parent_email)}</a></div>
+        <p>${escapeHtml(r.message)}</p>
+      </div>
+    `).join('');
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+</script>
+
+</body>
+</html>

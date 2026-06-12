@@ -80,6 +80,12 @@
       <input id="authEmail" type="email" autocomplete="email" placeholder="you@yourbusiness.com">
       <label for="authPass">Password</label>
       <input id="authPass" type="password" autocomplete="current-password" placeholder="At least 8 characters">
+      <div id="termsRow" style="display:none;margin-top:14px;">
+        <label style="display:flex;gap:9px;align-items:flex-start;font-weight:600;font-size:13px;cursor:pointer;margin:0;">
+          <input type="checkbox" id="agreeTerms" style="width:auto;margin-top:3px;">
+          <span>I have read and agree to the <a href="terms.html" target="_blank" style="color:var(--teal);">Terms &amp; Conditions</a> and <a href="privacy.html" target="_blank" style="color:var(--teal);">Privacy Policy</a>.</span>
+        </label>
+      </div>
       <button class="btn" id="authBtn" type="button">Sign in</button>
       <div class="msg" id="authMsg"></div>
     </div>
@@ -177,6 +183,7 @@
     tabSignin.classList.toggle('active', m === 'signin');
     tabSignup.classList.toggle('active', m === 'signup');
     authBtn.textContent = m === 'signin' ? 'Sign in' : 'Create account';
+    document.getElementById('termsRow').style.display = m === 'signup' ? 'block' : 'none';
     authMsg.className = 'msg';
   }
 
@@ -191,6 +198,9 @@
     const password = document.getElementById('authPass').value;
     if (!email || !password) return show(authMsg, 'Enter your email and password.', 'err');
     if (password.length < 8) return show(authMsg, 'Password needs at least 8 characters.', 'err');
+    if (mode === 'signup' && !document.getElementById('agreeTerms').checked) {
+      return show(authMsg, 'Please review and accept the Terms & Conditions and Privacy Policy to create your account.', 'err');
+    }
     authBtn.disabled = true;
 
     const action = mode === 'signin'

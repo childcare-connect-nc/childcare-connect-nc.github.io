@@ -172,12 +172,38 @@
 
     <div class="hero-photo">
       <div class="photo-frame">
-        <!-- REPLACE THIS IMAGE:
-             1. Go to pexels.com or unsplash.com (free for commercial use)
-             2. Search "parent child laughing candid" or "daycare teacher children"
-             3. Download, rename it hero.jpg, upload it to your GitHub repo
-             4. Change src below to "hero.jpg" -->
-        <img src="https://via.placeholder.com/680x720/F4E3D3/9C5B33?text=Your+family+photo+here" alt="A caregiver and child sharing a happy moment" loading="eager">
+        <!-- TO USE A REAL PHOTO LATER:
+             1. Download a warm candid photo from pexels.com (free for commercial use)
+             2. Rename it hero.jpg and upload it to your GitHub repo
+             3. Replace this entire <svg>...</svg> block with:
+                <img src="hero.jpg" alt="A caregiver and child sharing a happy moment">  -->
+        <svg viewBox="0 0 340 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Illustration of a caregiver and child" style="width:100%;height:100%;display:block;">
+          <rect width="340" height="360" fill="#F4E3D3"/>
+          <circle cx="262" cy="62" r="38" fill="#F5C998" opacity="0.55"/>
+          <ellipse cx="170" cy="352" rx="205" ry="62" fill="#E8C8A8" opacity="0.5"/>
+          <circle cx="78" cy="86" r="13" fill="#E76F51" opacity="0.28"/>
+          <circle cx="288" cy="170" r="10" fill="#2A9D8F" opacity="0.28"/>
+          <circle cx="58" cy="262" r="8" fill="#EF9F27" opacity="0.35"/>
+          <!-- caregiver -->
+          <circle cx="133" cy="143" r="32" fill="#9C5B33"/>
+          <path d="M101 140 Q133 100 165 140 L162 154 Q133 127 104 154 Z" fill="#3D2417"/>
+          <ellipse cx="133" cy="218" rx="47" ry="56" fill="#E76F51"/>
+          <path d="M120 135 Q133 146 146 135" stroke="#3D2417" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <circle cx="120" cy="129" r="3.8" fill="#3D2417"/>
+          <circle cx="146" cy="129" r="3.8" fill="#3D2417"/>
+          <!-- child -->
+          <circle cx="208" cy="186" r="23" fill="#B5714A"/>
+          <path d="M185 183 Q208 157 231 183 L228 194 Q208 176 188 194 Z" fill="#4A2E1C"/>
+          <ellipse cx="208" cy="241" rx="34" ry="40" fill="#2A9D8F"/>
+          <path d="M199 183 Q208 191 217 183" stroke="#4A2E1C" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+          <circle cx="199" cy="178" r="3.2" fill="#4A2E1C"/>
+          <circle cx="217" cy="178" r="3.2" fill="#4A2E1C"/>
+          <!-- arms: caregiver reaching to child -->
+          <path d="M168 212 Q186 228 197 232" stroke="#9C5B33" stroke-width="12" fill="none" stroke-linecap="round"/>
+          <path d="M246 228 Q233 241 219 245" stroke="#B5714A" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <!-- little heart between them -->
+          <path d="M178 156 c-2.6-3 -7.4-2.4 -8.8 1 -1.4-3.4 -6.2-4 -8.8-1 -2.4 2.8 -1.4 6.8 2.2 9.8 l6.6 5.4 6.6-5.4 c3.6-3 4.6-7 2.2-9.8z" fill="#E76F51" opacity="0.85"/>
+        </svg>
       </div>
       <div class="stat-card stat-top">
         <span class="icon" style="background:#FEF3E2;" aria-hidden="true">
@@ -290,7 +316,7 @@
     </details>
     <details>
       <summary>How are providers verified?</summary>
-      <p>Providers share their licensing and credentials when they join, and we review every listing before it goes live. We're building toward integrated background checks as we grow.</p>
+      <p>Providers share their licensing and credentials when they join, and we review every listing before it goes live. We also encourage families to verify credentials directly — North Carolina publishes every licensed facility's rating and history, and we're building toward integrated background checks as we grow.</p>
     </details>
     <details>
       <summary>What does "founding provider" mean?</summary>
@@ -307,6 +333,7 @@
   <div class="wrap">
     <p><strong style="color:var(--teal);">ChildCare Connect</strong> — connecting NC families with trusted childcare.</p>
     <p>Questions? <a href="mailto:childcareconnectnc@gmail.com">Email us</a></p>
+    <p style="margin-top:10px;"><a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="terms.html">Terms &amp; Conditions</a></p>
     <p style="margin-top:10px;">&copy; 2026 ChildCare Connect. All rights reserved.</p>
   </div>
 </footer>

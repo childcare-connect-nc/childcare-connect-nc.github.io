@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Find Childcare — ChildCare Connect</title>
+<meta name="description" content="Browse trusted, verified childcare providers in Wilmington, Raleigh, and Charlotte NC.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #0E4D4A; --teal-soft: #E3EFEA; --teal-mid: #2A9D8F;
+    --coral: #E76F51; --coral-soft: #FBE6DE; --coral-dark: #C9543A;
+    --cream: #FDFAF5; --ink: #11302E; --body: #4F5D58; --muted: #5C6B66;
+    --line: #E8E0D3; --green: #1D9E75; --red: #C0392B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito Sans', system-ui, sans-serif; background: var(--cream); color: var(--body); line-height: 1.65; }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; color: var(--ink); font-weight: 600; line-height: 1.2; }
+  .nav { background: rgba(253,250,245,.95); border-bottom: 1px solid var(--line); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 40; }
+  .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--teal); text-decoration: none; }
+  .logo-mark { width: 34px; height: 34px; background: var(--teal); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+  .logo span { color: var(--coral); }
+  .nav a.plink { font-size: 13.5px; font-weight: 700; color: var(--muted); text-decoration: none; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 36px 20px 80px; }
+  .head { text-align: center; max-width: 560px; margin: 0 auto 28px; }
+  .head h1 { font-size: clamp(26px, 4vw, 36px); margin-bottom: 8px; }
+  .filters { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+  .filters select { padding: 11px 16px; border: 1px solid var(--line); border-radius: 12px; font-family: inherit; font-size: 14px; font-weight: 600; color: var(--ink); background: #fff; min-width: 200px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  .pcard { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px; }
+  .pcard .type { display: inline-flex; align-self: flex-start; background: var(--teal-soft); color: var(--teal); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; }
+  .pcard h3 { font-size: 18px; }
+  .pcard .deets { font-size: 13.5px; color: var(--muted); }
+  .pcard .deets strong { color: var(--ink); }
+  .pcard .bio { font-size: 14px; flex: 1; }
+  .pcard button { margin-top: 10px; padding: 11px; border: none; border-radius: 22px; background: var(--coral); color: #fff; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .pcard button:hover { background: var(--coral-dark); }
+  .state { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 15px; }
+  .state h3 { font-size: 20px; margin-bottom: 8px; }
+  .state a { color: var(--coral); font-weight: 700; }
+
+  /* modal */
+  .overlay { position: fixed; inset: 0; background: rgba(17,48,46,.45); display: none; align-items: center; justify-content: center; padding: 20px; z-index: 60; }
+  .overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 18px; padding: 28px; max-width: 480px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-size: 20px; margin-bottom: 4px; }
+  .modal .sub { font-size: 13.5px; margin-bottom: 10px; }
+  label { display: block; font-size: 13px; font-weight: 700; color: var(--ink); margin: 12px 0 4px; }
+  input, select, textarea { width: 100%; padding: 10px 13px; border: 1px solid var(--line); border-radius: 10px; font-family: inherit; font-size: 14px; color: var(--ink); }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--teal-mid); border-color: transparent; }
+  textarea { min-height: 90px; resize: vertical; }
+  .mbtns { display: flex; gap: 10px; margin-top: 18px; }
+  .mbtns button { flex: 1; padding: 12px; border-radius: 22px; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; border: none; }
+  .send { background: var(--coral); color: #fff; }
+  .send:hover { background: var(--coral-dark); }
+  .send:disabled { opacity: .6; cursor: wait; }
+  .cancel { background: #fff; color: var(--muted); border: 1px solid var(--line); }
+  .msg { margin-top: 12px; padding: 11px 14px; border-radius: 10px; font-size: 13.5px; font-weight: 600; display: none; }
+  .msg.err { display: block; background: #FBE9E7; color: var(--red); }
+  .msg.ok { display: block; background: var(--teal-soft); color: var(--teal); }
+  .privacy { font-size: 11.5px; color: var(--muted); margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="logo" href="index.html">
+    <span class="logo-mark" aria-hidden="true">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 20.5C12 20.5 4 15.5 4 9.8 4 6.9 6.2 5 8.6 5c1.5 0 2.7.8 3.4 2 .7-1.2 1.9-2 3.4-2C17.8 5 20 6.9 20 9.8c0 5.7-8 10.7-8 10.7z" fill="#F4A88B"/></svg>
+    </span>
+    ChildCare&nbsp;<span>Connect</span>
+  </a>
+  <a class="plink" href="provider.html">Provider sign in</a>
+</nav>
+
+<div class="wrap">
+  <div class="head">
+    <h1>Find childcare near you</h1>
+    <p>Every listing below has been personally reviewed before going live.</p>
+  </div>
+
+  <div class="filters">
+    <select id="fCity" aria-label="Filter by city">
+      <option value="">All cities</option>
+      <option>Wilmington</option>
+      <option>Raleigh</option>
+      <option>Charlotte</option>
+      <option>Other NC</option>
+    </select>
+    <select id="fType" aria-label="Filter by type of care">
+      <option value="">All types of care</option>
+      <option>Licensed daycare center</option>
+      <option>In-home childcare</option>
+      <option>Nanny / babysitter</option>
+      <option>After-school program</option>
+    </select>
+  </div>
+
+  <div id="results"><div class="state">Loading providers…</div></div>
+</div>
+
+<!-- ============ Inquiry modal ============ -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="modal">
+    <h2 id="mTitle">Message this provider</h2>
+    <p class="sub" id="mSub"></p>
+
+    <label for="iName">Your name *</label>
+    <input id="iName" autocomplete="name">
+
+    <label for="iEmail">Your email *</label>
+    <input id="iEmail" type="email" autocomplete="email">
+    <p class="privacy">Shared only with this provider so they can reply to you.</p>
+
+    <label for="iAge">Child's age range</label>
+    <select id="iAge">
+      <option value="">Prefer not to say</option>
+      <option>Infant (0–12 months)</option>
+      <option>Toddler (1–3 years)</option>
+      <option>Preschool (3–5 years)</option>
+      <option>School age (5–12 years)</option>
+    </select>
+
+    <label for="iMsg">Your message *</label>
+    <textarea id="iMsg" placeholder="Hi! I'm looking for care starting in August — do you have openings?"></textarea>
+
+    <div class="mbtns">
+      <button class="cancel" id="mCancel" type="button">Cancel</button>
+      <button class="send" id="mSend" type="button">Send message</button>
+    </div>
+    <div class="msg" id="mMsg"></div>
+  </div>
+</div>
+
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+  const supabase = createClient(
+    'https://jcacedyzmsowclexnxvu.supabase.co',
+    'sb_publishable_wu3vOGLswNb-8eKJ9MLEOg_mdSaiOHH'
+  );
+
+  const results = document.getElementById('results');
+  const fCity = document.getElementById('fCity');
+  const fType = document.getElementById('fType');
+  let allProviders = [];
+  let activeProvider = null;
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  async function load() {
+    const { data, error } = await supabase
+      .from('providers')
+      .select('id, business_name, city, care_type, ages_served, price_range, bio')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      results.innerHTML = '<div class="state"><h3>Something went wrong</h3>Please refresh the page to try again.</div>';
+      return;
+    }
+    allProviders = data ?? [];
+    render();
+  }
+
+  function render() {
+    const city = fCity.value, type = fType.value;
+    const rows = allProviders.filter(p =>
+      (!city || p.city === city) && (!type || p.care_type === type)
+    );
+
+    if (allProviders.length === 0) {
+      results.innerHTML = '<div class="state"><h3>We\'re onboarding our founding providers now</h3>Check back soon — or <a href="index.html#waitlist">join the waitlist</a> to hear the moment we go live in your city.</div>';
+      return;
+    }
+    if (rows.length === 0) {
+      results.innerHTML = '<div class="state"><h3>No matches for those filters yet</h3>Try widening your search — more providers are joining every week.</div>';
+      return;
+    }
+
+    results.innerHTML = '<div class="grid">' + rows.map(p => `
+      <div class="pcard">
+        <span class="type">${escapeHtml(p.care_type)}</span>
+        <h3>${escapeHtml(p.business_name)}</h3>
+        <div class="deets">
+          <strong>${escapeHtml(p.city)}</strong>
+          ${p.ages_served ? ' · ' + escapeHtml(p.ages_served) : ''}
+          ${p.price_range ? ' · ' + escapeHtml(p.price_range) : ''}
+        </div>
+        <p class="bio">${escapeHtml(p.bio)}</p>
+        <button type="button" data-id="${p.id}">Message this provider</button>
+      </div>
+    `).join('') + '</div>';
+
+    results.querySelectorAll('button[data-id]').forEach(btn => {
+      btn.onclick = () => openModal(btn.dataset.id);
+    });
+  }
+
+  fCity.onchange = render;
+  fType.onchange = render;
+
+  // ---------- modal ----------
+  const overlay = document.getElementById('overlay');
+  const mMsg = document.getElementById('mMsg');
+  const mSend = document.getElementById('mSend');
+
+  function openModal(id) {
+    activeProvider = allProviders.find(p => p.id === id);
+    if (!activeProvider) return;
+    document.getElementById('mSub').textContent = 'Your message goes straight to ' + activeProvider.business_name + '.';
+    mMsg.className = 'msg';
+    overlay.classList.add('open');
+  }
+  document.getElementById('mCancel').onclick = () => overlay.classList.remove('open');
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.classList.remove('open'); };
+
+  mSend.onclick = async () => {
+    const name = document.getElementById('iName').value.trim();
+    const email = document.getElementById('iEmail').value.trim();
+    const age = document.getElementById('iAge').value;
+    const message = document.getElementById('iMsg').value.trim();
+
+    if (!name || !email || !message) {
+      mMsg.textContent = 'Please fill in your name, email, and message.';
+      mMsg.className = 'msg err';
+      return;
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      mMsg.textContent = 'That email doesn\'t look right — mind double-checking it?';
+      mMsg.className = 'msg err';
+      return;
+    }
+
+    mSend.disabled = true;
+    const { error } = await supabase.from('inquiries').insert({
+      provider_id: activeProvider.id,
+      parent_name: name,
+      parent_email: email,
+      child_age_range: age || null,
+      message
+    });
+    mSend.disabled = false;
+
+    if (error) {
+      mMsg.textContent = 'Could not send — please try again in a moment.';
+      mMsg.className = 'msg err';
+      return;
+    }
+    mMsg.textContent = 'Sent! ' + activeProvider.business_name + ' will reply to your email.';
+    mMsg.className = 'msg ok';
+    document.getElementById('iMsg').value = '';
+    setTimeout(() => overlay.classList.remove('open'), 2200);
+  };
+
+  load();
+</script>
+
+</body>
+</html>

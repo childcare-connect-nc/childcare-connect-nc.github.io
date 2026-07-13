@@ -51,8 +51,8 @@
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
 
-  .pcard { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px; }
-  .sample-badge { position: absolute; top: 14px; right: 14px; background: var(--teal); color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 10px; border-radius: 11px; }
+  .pcard { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px; }
+  .sample-badge { display: inline-flex; align-self: flex-start; background: var(--teal); color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 10px; border-radius: 11px; }
   .pcard-top { display: flex; align-items: center; gap: 14px; margin-bottom: 2px; }
   .avatar { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; color: #fff; flex-shrink: 0; }
   .badges-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
@@ -217,13 +217,13 @@
 
     results.innerHTML = '<div class="grid">' + rows.map(p => `
       <div class="pcard">
-        <span class="sample-badge">Preview</span>
         <div class="pcard-top">
           <div class="avatar" style="background:${p.avatarBg}">${p.initials}</div>
           <div>
             <div class="badges-row">
               <span class="type">${p.type}</span>
               <span class="approved">✓ Personally Approved</span>
+              <span class="sample-badge">Preview</span>
             </div>
             <h3>${p.name}</h3>
           </div>

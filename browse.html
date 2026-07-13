@@ -31,7 +31,9 @@
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
   .pcard { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 8px; }
+  .badges-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .pcard .type { display: inline-flex; align-self: flex-start; background: var(--teal-soft); color: var(--teal); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; }
+  .pcard .approved { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; background: #E3F5EC; color: var(--green); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; }
   .pcard h3 { font-size: 18px; }
   .pcard .deets { font-size: 13.5px; color: var(--muted); }
   .pcard .deets strong { color: var(--ink); }
@@ -184,7 +186,10 @@
 
     results.innerHTML = '<div class="grid">' + rows.map(p => `
       <div class="pcard">
-        <span class="type">${escapeHtml(p.care_type)}</span>
+        <div class="badges-row">
+          <span class="type">${escapeHtml(p.care_type)}</span>
+          <span class="approved">✓ Personally Approved</span>
+        </div>
         <h3>${escapeHtml(p.business_name)}</h3>
         <div class="deets">
           <strong>${escapeHtml(p.city)}</strong>

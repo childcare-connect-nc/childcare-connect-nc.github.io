@@ -4,7 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>See a Preview — ChildCare Connect</title>
-<meta name="description" content="A preview of what browsing childcare providers on ChildCare Connect will look like once real listings go live in Wilmington, Raleigh, and Charlotte NC.">
+<meta name="description" content="A preview of what browsing childcare providers on ChildCare Connect will look like once real listings go live in Wilmington, Raleigh, and Charlotte NC — expanding to Greensboro, High Point, and Durham next.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ChildCare Connect">
+<meta property="og:title" content="See a preview — ChildCare Connect">
+<meta property="og:description" content="A preview of what browsing childcare providers will look like once real listings go live in Wilmington, Raleigh, and Charlotte NC.">
+<meta property="og:image" content="https://childcareconnectnc.com/og-image.png">
+<meta property="og:url" content="https://childcareconnectnc.com/browse-preview.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="See a preview — ChildCare Connect">
+<meta name="twitter:description" content="A preview of what browsing childcare providers will look like once real listings go live in Wilmington, Raleigh, and Charlotte NC.">
+<meta name="twitter:image" content="https://childcareconnectnc.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -45,7 +55,9 @@
   .sample-badge { position: absolute; top: 14px; right: 14px; background: var(--teal); color: #fff; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 3px 10px; border-radius: 11px; }
   .pcard-top { display: flex; align-items: center; gap: 14px; margin-bottom: 2px; }
   .avatar { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; color: #fff; flex-shrink: 0; }
-  .pcard .type { display: inline-flex; align-self: flex-start; background: var(--teal-soft); color: var(--teal); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; margin-bottom: 4px; }
+  .badges-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+  .pcard .type { display: inline-flex; align-self: flex-start; background: var(--teal-soft); color: var(--teal); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; }
+  .pcard .approved { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; background: #E3F5EC; color: var(--green); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; }
   .pcard h3 { font-size: 18px; }
   .pcard .deets { font-size: 13.5px; color: var(--muted); }
   .pcard .deets strong { color: var(--ink); }
@@ -209,7 +221,10 @@
         <div class="pcard-top">
           <div class="avatar" style="background:${p.avatarBg}">${p.initials}</div>
           <div>
-            <span class="type">${p.type}</span>
+            <div class="badges-row">
+              <span class="type">${p.type}</span>
+              <span class="approved">✓ Personally Approved</span>
+            </div>
             <h3>${p.name}</h3>
           </div>
         </div>

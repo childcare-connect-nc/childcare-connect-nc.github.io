@@ -120,6 +120,9 @@
 
     <div class="section-label">Rejected</div>
     <div class="plist" id="rejectedList"></div>
+
+    <div class="section-label">Pending reviews</div>
+    <div class="plist" id="reviewsList"></div>
   </div>
 
 </div>
@@ -182,6 +185,7 @@
     }
     appView.style.display = 'block';
     await loadProviders();
+    await loadReviews();
   }
 
   async function loadProviders() {
@@ -302,6 +306,64 @@
       await supabase.from('admin_notes').insert({ provider_id: id, note: note.trim() });
     }
     loadProviders();
+  }
+
+  // ---------- review moderation ----------
+  async function loadReviews() {
+    const reviewsList = document.getElementById('reviewsList');
+    const { data: reviews, error } = await supabase
+      .from('reviews')
+      .select('*, providers(business_name)')
+      .eq('is_approved', false)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      reviewsList.innerHTML = `<p class="empty">Could not load reviews: ${escapeHtml(error.message)}</p>`;
+      return;
+    }
+
+    reviewsList.innerHTML = (reviews && reviews.length)
+      ? reviews.map(renderReviewRow).join('')
+      : '<p class="empty">No pending reviews.</p>';
+
+    document.querySelectorAll('button[data-approve-review]').forEach(btn => {
+      btn.onclick = () => approveReview(btn.dataset.approveReview);
+    });
+    document.querySelectorAll('button[data-delete-review]').forEach(btn => {
+      btn.onclick = () => deleteReview(btn.dataset.deleteReview);
+    });
+  }
+
+  function renderReviewRow(r) {
+    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+    return `
+      <div class="prow">
+        <div class="top">
+          <div>
+            <h3>${escapeHtml(r.providers?.business_name || '(unknown provider)')}</h3>
+            <span class="type" style="color:var(--amber);background:#FEF3E2;">${stars}</span>
+          </div>
+        </div>
+        ${r.parent_name ? `<div class="deets"><strong>${escapeHtml(r.parent_name)}</strong></div>` : ''}
+        ${r.comment ? `<p class="bio">${escapeHtml(r.comment)}</p>` : ''}
+        <div class="actions">
+          <button class="approve-btn" type="button" data-approve-review="${r.id}">Approve</button>
+          <button class="reject-btn" type="button" data-delete-review="${r.id}">Delete</button>
+        </div>
+      </div>`;
+  }
+
+  async function approveReview(id) {
+    const { error } = await supabase.from('reviews').update({ is_approved: true }).eq('id', id);
+    if (error) return alert('Could not update: ' + error.message);
+    loadReviews();
+  }
+
+  async function deleteReview(id) {
+    if (!confirm('Delete this review permanently? This cannot be undone.')) return;
+    const { error } = await supabase.from('reviews').delete().eq('id', id);
+    if (error) return alert('Could not delete: ' + error.message);
+    loadReviews();
   }
 </script>
 

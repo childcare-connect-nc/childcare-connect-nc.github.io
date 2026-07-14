@@ -152,6 +152,10 @@
       <input id="fPrice" disabled placeholder="e.g. $150–220/week">
       <p class="hint">Families consistently say up-front pricing is the #1 thing they want to see.</p>
 
+      <label for="fStartingPrice">Starting price (just the number)</label>
+      <input id="fStartingPrice" type="number" min="0" step="0.01" disabled placeholder="e.g. 150">
+      <p class="hint">Used to sort listings by price on the browse page — enter your lowest weekly or hourly rate as a plain number.</p>
+
       <label for="fBio">About you *</label>
       <textarea id="fBio" disabled placeholder="Tell families about your experience, your space, your approach to care, and anything that makes you special."></textarea>
 
@@ -257,7 +261,7 @@
   }
 
   // ---------- edit mode ----------
-  const PROFILE_FIELDS = ['fBiz', 'fContact', 'fPhone', 'fCity', 'fType', 'fAges', 'fPrice', 'fBio'];
+  const PROFILE_FIELDS = ['fBiz', 'fContact', 'fPhone', 'fCity', 'fType', 'fAges', 'fPrice', 'fStartingPrice', 'fBio'];
   const editBtn = document.getElementById('editBtn');
   const cancelEditBtn = document.getElementById('cancelEditBtn');
 
@@ -287,6 +291,7 @@
       document.getElementById('fType').value = p.care_type ?? '';
       document.getElementById('fAges').value = p.ages_served ?? '';
       document.getElementById('fPrice').value = p.price_range ?? '';
+      document.getElementById('fStartingPrice').value = p.starting_price ?? '';
       document.getElementById('fBio').value = p.bio ?? '';
       const photoPreview = document.getElementById('photoPreview');
       if (p.photo_url) {
@@ -324,6 +329,7 @@
       care_type: document.getElementById('fType').value,
       ages_served: document.getElementById('fAges').value.trim(),
       price_range: document.getElementById('fPrice').value.trim(),
+      starting_price: document.getElementById('fStartingPrice').value ? Number(document.getElementById('fStartingPrice').value) : null,
       bio: document.getElementById('fBio').value.trim()
     };
 

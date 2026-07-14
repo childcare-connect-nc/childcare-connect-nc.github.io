@@ -13,7 +13,7 @@
     --teal: #0E4D4A; --teal-soft: #E3EFEA; --teal-mid: #2A9D8F;
     --coral: #E76F51; --coral-soft: #FBE6DE; --coral-dark: #C9543A;
     --cream: #FDFAF5; --ink: #11302E; --body: #4F5D58; --muted: #5C6B66;
-    --line: #E8E0D3; --green: #1D9E75; --red: #C0392B;
+    --line: #E8E0D3; --green: #1D9E75; --red: #C0392B; --amber: #EF9F27;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Nunito Sans', system-ui, sans-serif; background: var(--cream); color: var(--body); line-height: 1.65; }
@@ -40,6 +40,15 @@
   .pcard .deets { font-size: 13.5px; color: var(--muted); }
   .pcard .deets strong { color: var(--ink); }
   .pcard .bio { font-size: 14px; flex: 1; }
+  .rating-line { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+  .stars-wrap { position: relative; display: inline-block; font-size: 15px; line-height: 1; letter-spacing: 2px; }
+  .stars-bg { color: #E3DDD0; }
+  .stars-fg { position: absolute; top: 0; left: 0; overflow: hidden; white-space: nowrap; color: var(--amber); }
+  .rating-line .num { font-weight: 700; color: var(--ink); }
+  .review-link { background: none; border: none; color: var(--teal); font-size: 12.5px; font-weight: 700; cursor: pointer; padding: 0; text-decoration: underline; margin-left: auto; }
+  .star-picker { display: flex; gap: 4px; margin: 8px 0 2px; }
+  .star-picker button { background: none; border: none; font-size: 28px; line-height: 1; color: #E3DDD0; cursor: pointer; padding: 0; }
+  .star-picker button.active { color: var(--amber); }
   .pcard button { margin-top: 10px; padding: 11px; border: none; border-radius: 22px; background: var(--coral); color: #fff; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
   .pcard button:hover { background: var(--coral-dark); }
   .state { text-align: center; padding: 50px 20px; color: var(--muted); font-size: 15px; }
@@ -101,6 +110,13 @@
       <option>Nanny / babysitter</option>
       <option>After-school program</option>
     </select>
+    <select id="fSort" aria-label="Sort results">
+      <option value="">Sort: Recommended</option>
+      <option value="name-asc">Name (A–Z)</option>
+      <option value="name-desc">Name (Z–A)</option>
+      <option value="price-asc">Price (low to high)</option>
+      <option value="rating-desc">Rating (high to low)</option>
+    </select>
   </div>
 
   <div id="results"><div class="state">Loading providers…</div></div>
@@ -139,6 +155,37 @@
   </div>
 </div>
 
+<!-- ============ Review modal ============ -->
+<div class="overlay" id="overlayReview" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+  <div class="modal">
+    <h2 id="rTitle">Leave a review</h2>
+    <p class="sub" id="rSub"></p>
+
+    <label>Your rating *</label>
+    <div class="star-picker" id="starPicker" role="radiogroup" aria-label="Star rating">
+      <button type="button" data-star="1" aria-label="1 star">★</button>
+      <button type="button" data-star="2" aria-label="2 stars">★</button>
+      <button type="button" data-star="3" aria-label="3 stars">★</button>
+      <button type="button" data-star="4" aria-label="4 stars">★</button>
+      <button type="button" data-star="5" aria-label="5 stars">★</button>
+    </div>
+
+    <label for="rName">Your name (optional)</label>
+    <input id="rName" placeholder="Shown next to your review">
+
+    <label for="rComment">Your review (optional)</label>
+    <textarea id="rComment" placeholder="How was your experience?"></textarea>
+
+    <p class="privacy">Reviews are checked before they appear publicly.</p>
+
+    <div class="mbtns">
+      <button class="cancel" id="rCancel" type="button">Cancel</button>
+      <button class="send" id="rSend" type="button">Submit review</button>
+    </div>
+    <div class="msg" id="rMsg"></div>
+  </div>
+</div>
+
 <script type="module">
   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -150,32 +197,60 @@
   const results = document.getElementById('results');
   const fCity = document.getElementById('fCity');
   const fType = document.getElementById('fType');
+  const fSort = document.getElementById('fSort');
   let allProviders = [];
   let activeProvider = null;
+  let reviewsByProvider = {};
 
   function escapeHtml(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
-  async function load() {
-    const { data, error } = await supabase
-      .from('providers')
-      .select('id, business_name, city, care_type, ages_served, price_range, bio, photo_url')
-      .order('created_at', { ascending: true });
+  function starsHtml(avg) {
+    const pct = Math.max(0, Math.min(100, (avg / 5) * 100));
+    return `<div class="stars-wrap" aria-hidden="true"><div class="stars-bg">★★★★★</div><div class="stars-fg" style="width:${pct}%">★★★★★</div></div>`;
+  }
 
-    if (error) {
+  async function load() {
+    const [providerRes, reviewRes] = await Promise.all([
+      supabase.from('providers')
+        .select('id, business_name, city, care_type, ages_served, price_range, starting_price, bio, photo_url')
+        .order('created_at', { ascending: true }),
+      supabase.from('reviews').select('provider_id, rating').eq('is_approved', true)
+    ]);
+
+    if (providerRes.error) {
       results.innerHTML = '<div class="state"><h3>Something went wrong</h3>Please refresh the page to try again.</div>';
       return;
     }
-    allProviders = data ?? [];
+    allProviders = providerRes.data ?? [];
+
+    reviewsByProvider = {};
+    (reviewRes.data ?? []).forEach(r => {
+      const bucket = (reviewsByProvider[r.provider_id] ??= { sum: 0, count: 0 });
+      bucket.sum += r.rating;
+      bucket.count += 1;
+    });
+
     render();
+  }
+
+  function sortRows(rows, sortKey) {
+    const arr = [...rows];
+    const ratingOf = (p) => reviewsByProvider[p.id] ? reviewsByProvider[p.id].sum / reviewsByProvider[p.id].count : -1;
+    if (sortKey === 'name-asc') arr.sort((a, b) => a.business_name.localeCompare(b.business_name));
+    else if (sortKey === 'name-desc') arr.sort((a, b) => b.business_name.localeCompare(a.business_name));
+    else if (sortKey === 'price-asc') arr.sort((a, b) => (a.starting_price ?? Infinity) - (b.starting_price ?? Infinity));
+    else if (sortKey === 'rating-desc') arr.sort((a, b) => ratingOf(b) - ratingOf(a));
+    return arr;
   }
 
   function render() {
     const city = fCity.value, type = fType.value;
-    const rows = allProviders.filter(p =>
+    let rows = allProviders.filter(p =>
       (!city || p.city === city) && (!type || p.care_type === type)
     );
+    rows = sortRows(rows, fSort.value);
 
     if (allProviders.length === 0) {
       results.innerHTML = '<div class="state"><h3>We\'re onboarding our founding providers now</h3>Check back soon — or <a href="index.html#waitlist">join the waitlist</a> to hear the moment we go live in your city.</div>';
@@ -186,7 +261,10 @@
       return;
     }
 
-    results.innerHTML = '<div class="grid">' + rows.map(p => `
+    results.innerHTML = '<div class="grid">' + rows.map(p => {
+      const rv = reviewsByProvider[p.id];
+      const avg = rv ? rv.sum / rv.count : null;
+      return `
       <div class="pcard">
         ${p.photo_url ? `<div class="photo-banner"><img src="${escapeHtml(p.photo_url)}" alt="${escapeHtml(p.business_name)}"></div>` : ''}
         <div class="badges-row">
@@ -199,18 +277,28 @@
           ${p.ages_served ? ' · ' + escapeHtml(p.ages_served) : ''}
           ${p.price_range ? ' · ' + escapeHtml(p.price_range) : ''}
         </div>
+        <div class="rating-line">
+          ${avg !== null
+            ? `${starsHtml(avg)}<span class="num">${avg.toFixed(1)}</span><span>(${rv.count} review${rv.count === 1 ? '' : 's'})</span>`
+            : '<span>No reviews yet</span>'}
+          <button type="button" class="review-link" data-review-id="${p.id}">Leave a review</button>
+        </div>
         <p class="bio">${escapeHtml(p.bio)}</p>
         <button type="button" data-id="${p.id}">Message this provider</button>
       </div>
-    `).join('') + '</div>';
+    `; }).join('') + '</div>';
 
     results.querySelectorAll('button[data-id]').forEach(btn => {
       btn.onclick = () => openModal(btn.dataset.id);
+    });
+    results.querySelectorAll('button[data-review-id]').forEach(btn => {
+      btn.onclick = () => openReviewModal(btn.dataset.reviewId);
     });
   }
 
   fCity.onchange = render;
   fType.onchange = render;
+  fSort.onchange = render;
 
   // ---------- modal ----------
   const overlay = document.getElementById('overlay');
@@ -263,6 +351,63 @@
     mMsg.className = 'msg ok';
     document.getElementById('iMsg').value = '';
     setTimeout(() => overlay.classList.remove('open'), 2200);
+  };
+
+  // ---------- review modal ----------
+  const overlayReview = document.getElementById('overlayReview');
+  const rMsg = document.getElementById('rMsg');
+  const rSend = document.getElementById('rSend');
+  const starPicker = document.getElementById('starPicker');
+  let activeReviewProvider = null;
+  let reviewRating = 0;
+
+  starPicker.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      reviewRating = Number(btn.dataset.star);
+      starPicker.querySelectorAll('button').forEach(b => b.classList.toggle('active', Number(b.dataset.star) <= reviewRating));
+    };
+  });
+
+  function openReviewModal(id) {
+    activeReviewProvider = allProviders.find(p => p.id === id);
+    if (!activeReviewProvider) return;
+    document.getElementById('rSub').textContent = 'Share your experience with ' + activeReviewProvider.business_name + '.';
+    reviewRating = 0;
+    starPicker.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    document.getElementById('rName').value = '';
+    document.getElementById('rComment').value = '';
+    rMsg.className = 'msg';
+    overlayReview.classList.add('open');
+  }
+  document.getElementById('rCancel').onclick = () => overlayReview.classList.remove('open');
+  overlayReview.onclick = (e) => { if (e.target === overlayReview) overlayReview.classList.remove('open'); };
+
+  rSend.onclick = async () => {
+    if (!reviewRating) {
+      rMsg.textContent = 'Please select a star rating.';
+      rMsg.className = 'msg err';
+      return;
+    }
+    const name = document.getElementById('rName').value.trim();
+    const comment = document.getElementById('rComment').value.trim();
+
+    rSend.disabled = true;
+    const { error } = await supabase.from('reviews').insert({
+      provider_id: activeReviewProvider.id,
+      parent_name: name || null,
+      rating: reviewRating,
+      comment: comment || null
+    });
+    rSend.disabled = false;
+
+    if (error) {
+      rMsg.textContent = 'Could not submit — please try again in a moment.';
+      rMsg.className = 'msg err';
+      return;
+    }
+    rMsg.textContent = 'Thanks! Your review will appear once it\'s been checked.';
+    rMsg.className = 'msg ok';
+    setTimeout(() => overlayReview.classList.remove('open'), 2200);
   };
 
   load();

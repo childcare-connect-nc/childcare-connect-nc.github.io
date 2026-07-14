@@ -316,7 +316,7 @@
       } else {
         photoPreview.style.display = 'none';
       }
-      if (p.is_approved) {
+      if (p.review_status === 'approved') {
         statusRow.innerHTML = '<span class="status live">● Live — visible to families</span>';
         pendingNote.style.display = 'none';
       } else {

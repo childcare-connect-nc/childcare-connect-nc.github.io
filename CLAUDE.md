@@ -17,23 +17,28 @@ A childcare marketplace for North Carolina (Wilmington → Raleigh → Charlotte
 
 ## Pages
 - `index.html` — landing page. Parent CTA → Tally waitlist (intentional until enough listings exist to make browsing worthwhile), plus a "See what it'll look like →" link to browse-preview.html. Provider CTA → provider.html directly (no Tally form in this flow despite the provider Tally link existing — see note below). Footer links to legal pages. Hero pill names the active launch cities (Wilmington/Raleigh/Charlotte); waitlist copy and FAQ also mention Greensboro/High Point/Durham as planned next expansion. Has OG/Twitter social-preview meta tags + og-image.png.
-- `provider.html` — provider portal: email/password auth (Supabase), profile create/edit, approval-status badge (pending/live), inbox of parent inquiries. Signup requires a T&C agreement checkbox. **No photo upload UI exists yet** — see Parked checklist. Has OG/Twitter meta tags (robots: noindex, so not search-indexed, but still gets a social preview card when shared).
-- `browse.html` — public parent-facing search: filter by city + care type, provider cards showing a care-type pill and a green "✓ Personally Approved" badge, inquiry modal that inserts into `inquiries`. **Does not render any provider photo** — the `photo_url` column isn't even selected in the query yet. Not yet linked from the homepage nav (deliberate soft launch).
+- `provider.html` — provider portal: email/password auth (Supabase), profile create/edit with photo upload (wired to the `provider-photos` bucket), approval-status badge (pending/live — always shows "pending" even if rejected, by design, see Product principles). Profile fields load locked/read-only by default with an "Edit profile" button to unlock them (Save/Cancel); a brand-new signup with no listing yet starts directly in edit mode. Inbox of parent inquiries. Signup requires a T&C agreement checkbox. Has OG/Twitter meta tags (robots: noindex, so not search-indexed, but still gets a social preview card when shared).
+- `browse.html` — public parent-facing search: filter by city + care type, provider cards showing a care-type pill, a green "✓ Personally Approved" badge, and a photo banner when `photo_url` is set, inquiry modal that inserts into `inquiries`. Not yet linked from the homepage nav (deliberate soft launch).
 - `browse-preview.html` — preview page for waitlisted parents: 4 static sample provider cards (initials avatars, star ratings, "Personally Approved" + "Preview" badges), working client-side city/type filters over the sample data only. No Supabase calls. Linked from index.html's waitlist section.
+- `admin.html` — admin-only portal (robots: noindex, nofollow), gated to one designated login (`childcareconnectnc@gmail.com`, checked client-side; real enforcement is the RLS policies below). Lists providers in three sections — Pending review / Approved & live / Rejected — with Approve, Reject, Revoke, and Move-to-pending actions. Rejecting or revoking prompts for an optional note, saved to `admin_notes` (admin-only table). Providers never see rejection status or notes — provider.html always shows "Pending review" for both never-reviewed and rejected listings, by deliberate product choice (Nikieta follows up on rejections personally, off-platform).
 - `terms.html`, `privacy.html` — legal pages, styled to match. Effective June 12, 2026.
 
 **Note on Tally provider link:** both this file and prior notes reference a Tally provider waitlist form (`7RPNY2`), but neither index.html nor provider.html currently links to it — the provider CTA goes straight to the real provider.html signup portal. Confirm with Nikieta whether that Tally form is still meant to be live anywhere before assuming it's part of the funnel.
 
 ## Database (Supabase)
-**providers** — id (uuid, = auth.users id), business_name, contact_name, email, phone, city, care_type, ages_served (text), price_range (text, free-form), bio, photo_url, is_approved (boolean, default false), created_at.
+**providers** — id (uuid, = auth.users id), business_name, contact_name, email, phone, city, care_type, ages_served (text), price_range (text, free-form), bio, photo_url, is_approved (boolean, default false), review_status (text: 'pending'|'approved'|'rejected', default 'pending', kept in sync with is_approved by admin.html), created_at.
 
 **inquiries** — id, provider_id (FK), parent_name, parent_email, child_age_range, message, is_read, created_at.
 
+**admin_notes** — id (uuid), provider_id (FK → providers), note (text), created_at. Admin-only rejection/revocation notes, deliberately kept in a separate table (not a column on `providers`) so a provider's own "select my row" RLS policy can never surface it, even accidentally.
+
 **RLS (all enforced, do not weaken):**
-- Public can SELECT providers only where is_approved = true; providers can SELECT/INSERT/UPDATE only their own row; nobody can set is_approved through the client — approval is done manually in the Supabase Table Editor (that's the admin workflow).
+- Public can SELECT providers only where is_approved = true; providers can SELECT/INSERT/UPDATE only their own row; nobody but the admin account can set is_approved/review_status through the client.
+- Admin account (`childcareconnectnc@gmail.com`, matched via `auth.jwt() ->> 'email'`) can SELECT all providers and UPDATE any provider row — this is row-scoped, not column-scoped, so technically the admin session could edit any column via a direct API call, not just approval fields. Accepted risk; admin.html's own code only ever writes is_approved/review_status.
+- admin_notes: only the admin account can SELECT/INSERT/UPDATE/DELETE (FOR ALL policy) — no policy grants providers or the public any access, so RLS default-denies everyone else.
 - Anyone can INSERT inquiries (parents have no accounts); providers can SELECT/UPDATE only inquiries where provider_id = their auth.uid().
 
-**Storage:** public bucket `provider-photos`, 5 MB limit, image/jpeg|png|webp only. Policies restrict insert/update/delete to a folder named with the uploader's auth.uid(); path convention `{user_id}/listing.{ext}`, upsert + cache-busting `?v=` query param. **This exists on the Supabase side but is not yet wired to any frontend page** — provider.html has no upload input, and browse.html doesn't select or render `photo_url`. Treat as backlog, not shipped.
+**Storage:** public bucket `provider-photos`, 5 MB limit, image/jpeg|png|webp only. Policies restrict insert/update/delete to a folder named with the uploader's auth.uid(); path convention `{user_id}/listing.{ext}`, upsert + cache-busting `?v=` query param. Wired up end-to-end: provider.html uploads and saves `photo_url`, browse.html renders it as a card photo banner.
 
 ## Product principles (non-negotiable)
 1. **Data minimization** — never collect children's names, birthdates, or photos. Inquiries use age ranges only. Photo-upload UI tells providers not to include children's faces.
@@ -45,7 +50,6 @@ A childcare marketplace for North Carolina (Wilmington → Raleigh → Charlotte
 Cream background #FDFAF5; ink #11302E; body text #4F5D58; teal (trust) #0E4D4A with soft #E3EFEA; coral (warmth/CTAs) #E76F51, hover #C9543A, soft #FBE6DE; lines #E8E0D3; success green #1D9E75. Rounded (10–26px radii), pill buttons, warm + personable small-business tone — never corporate. Headings Fraunces, everything else Nunito Sans.
 
 ## Parked checklist (the backlog)
-- Wire photo upload: add a file input to provider.html's profile form, upload to the existing `provider-photos` bucket, save `photo_url` on the provider row, and render it on browse.html cards. The bucket + storage policies already exist in Supabase — only the frontend is missing.
 - Replace hero illustration on index.html with a real photo (instructions are in a comment in the file)
 - Graphics fine-tuning pass
 - Re-enable Supabase email confirmation before parent-facing launch (Authentication → set Site URL to https://childcareconnectnc.com first; it was disabled deliberately to reduce founding-provider signup friction)
@@ -65,9 +69,14 @@ Cream background #FDFAF5; ink #11302E; body text #4F5D58; teal (trust) #0E4D4A w
 - **Don't expand scope on your own.** Stick to what she asked; if you spot something else worth doing, suggest it and let her decide.
 
 ## Current business state (July 2026)
-Founding-provider outreach in progress (Wilmington first: DMs from her personal Facebook + emails from the business gmail; founding offer = 6 months free, no card). First real provider signups expected via provider.html. Approval workflow: Supabase Table Editor → providers → set is_approved = true.
+Founding-provider outreach in progress (Wilmington first: DMs from her personal Facebook + emails from the business gmail; founding offer = 6 months free, no card). First real provider signups expected via provider.html. Approval workflow: admin.html (preferred) or Supabase Table Editor → providers → set is_approved/review_status directly.
 
 ## Recently completed (most recent first)
+- Fixed a bug in admin.html where clicking Cancel on the reject/revoke note prompt still rejected the listing anyway (prompt() returns null on Cancel, which the code didn't check for)
+- Added a Rejected status to admin.html, distinct from Pending: providers table now has a `review_status` column (pending/approved/rejected) instead of relying on the is_approved boolean alone; revoking an approved listing now moves it to Rejected rather than back into the pending queue. Rejection/revoke reasons are optional and stored in a new admin-only `admin_notes` table. provider.html is unchanged by this — providers still see "Pending review" whether never-reviewed or rejected, a deliberate choice so Nikieta can handle rejections personally rather than the site delivering a cold automated one
+- Added admin.html: a gated admin portal (RLS-restricted to childcareconnectnc@gmail.com) for approving/rejecting provider listings, replacing manual Supabase Table Editor edits
+- Provider profile fields in provider.html now load locked/read-only with an "Edit profile" button, instead of always being editable; brand-new signups with no listing yet still start directly in edit mode
+- Wired up photo upload end-to-end: provider.html has an upload UI hitting the existing `provider-photos` bucket, browse.html now renders the photo as a card banner when set
 - Fixed the "Preview" badge on browse-preview.html overlapping the type/approved badges — moved into the same flowing badge row instead of an absolute corner ribbon
 - Added a green "✓ Personally Approved" badge to provider cards on both browse.html and browse-preview.html (chosen over "Verified"/"Reviewed" — accurate for every care type including nanny/babysitter listings that don't have formal credentials)
 - Added coverage-expansion copy: Greensboro, High Point, and Durham mentioned as planned-next cities in index.html's meta description, waitlist section, and FAQ, plus browse-preview.html's meta description (Wilmington/Raleigh/Charlotte kept as the active hero pill)

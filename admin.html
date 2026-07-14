@@ -322,9 +322,18 @@
       return;
     }
 
-    reviewsList.innerHTML = (reviews && reviews.length)
-      ? reviews.map(renderReviewRow).join('')
-      : '<p class="empty">No pending reviews.</p>';
+    if (!reviews || reviews.length === 0) {
+      reviewsList.innerHTML = '<p class="empty">No pending reviews.</p>';
+      return;
+    }
+
+    const groups = {};
+    reviews.forEach(r => {
+      const key = r.provider_id;
+      (groups[key] ??= { name: r.providers?.business_name || '(unknown provider)', reviews: [] }).reviews.push(r);
+    });
+
+    reviewsList.innerHTML = Object.values(groups).map(renderProviderReviewGroup).join('');
 
     document.querySelectorAll('button[data-approve-review]').forEach(btn => {
       btn.onclick = () => approveReview(btn.dataset.approveReview);
@@ -334,17 +343,22 @@
     });
   }
 
-  function renderReviewRow(r) {
-    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+  function renderProviderReviewGroup(group) {
     return `
       <div class="prow">
         <div class="top">
-          <div>
-            <h3>${escapeHtml(r.providers?.business_name || '(unknown provider)')}</h3>
-            <span class="type" style="color:var(--amber);background:#FEF3E2;">${stars}</span>
-          </div>
+          <h3>${escapeHtml(group.name)}</h3>
+          <span class="status-pill pending">${group.reviews.length} pending</span>
         </div>
-        ${r.parent_name ? `<div class="deets"><strong>${escapeHtml(r.parent_name)}</strong></div>` : ''}
+        ${group.reviews.map(renderSingleReview).join('')}
+      </div>`;
+  }
+
+  function renderSingleReview(r) {
+    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+    return `
+      <div style="border-top:1px solid var(--line);padding-top:10px;margin-top:10px;">
+        <div class="deets" style="color:var(--amber);">${stars}${r.parent_name ? ' · ' + escapeHtml(r.parent_name) : ''}</div>
         ${r.comment ? `<p class="bio">${escapeHtml(r.comment)}</p>` : ''}
         <div class="actions">
           <button class="approve-btn" type="button" data-approve-review="${r.id}">Approve</button>

@@ -116,18 +116,19 @@
     <div class="card">
       <h2 style="font-size:19px;margin-bottom:4px;">Profile details</h2>
       <p style="font-size:13.5px;">This is what families will see.</p>
+      <button class="btn btn-quiet" id="editBtn" type="button">Edit profile</button>
 
       <label for="fBiz">Business or provider name *</label>
-      <input id="fBiz" placeholder="Sunny Days Daycare">
+      <input id="fBiz" disabled placeholder="Sunny Days Daycare">
 
       <label for="fContact">Your name *</label>
-      <input id="fContact" placeholder="First and last name">
+      <input id="fContact" disabled placeholder="First and last name">
 
       <label for="fPhone">Phone</label>
-      <input id="fPhone" type="tel" placeholder="(910) 555-0100">
+      <input id="fPhone" type="tel" disabled placeholder="(910) 555-0100">
 
       <label for="fCity">City *</label>
-      <select id="fCity">
+      <select id="fCity" disabled>
         <option value="">Choose a city…</option>
         <option>Wilmington</option>
         <option>Raleigh</option>
@@ -136,7 +137,7 @@
       </select>
 
       <label for="fType">Type of care *</label>
-      <select id="fType">
+      <select id="fType" disabled>
         <option value="">Choose one…</option>
         <option>Licensed daycare center</option>
         <option>In-home childcare</option>
@@ -145,16 +146,27 @@
       </select>
 
       <label for="fAges">Ages served</label>
-      <input id="fAges" placeholder="e.g. Infants to 5 years">
+      <input id="fAges" disabled placeholder="e.g. Infants to 5 years">
 
       <label for="fPrice">Price range</label>
-      <input id="fPrice" placeholder="e.g. $150–220/week">
+      <input id="fPrice" disabled placeholder="e.g. $150–220/week">
       <p class="hint">Families consistently say up-front pricing is the #1 thing they want to see.</p>
 
       <label for="fBio">About you *</label>
-      <textarea id="fBio" placeholder="Tell families about your experience, your space, your approach to care, and anything that makes you special."></textarea>
+      <textarea id="fBio" disabled placeholder="Tell families about your experience, your space, your approach to care, and anything that makes you special."></textarea>
 
-      <button class="btn" id="saveBtn" type="button">Save listing</button>
+      <label for="fPhoto">Profile photo</label>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <img id="photoPreview" alt="Your current profile photo" style="width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--teal-soft);display:none;flex-shrink:0;">
+        <div style="flex:1;">
+          <input type="file" id="fPhoto" accept="image/jpeg,image/png,image/webp">
+        </div>
+      </div>
+      <p class="hint">JPG, PNG, or WEBP, up to 5MB. Please don't include children's faces — a photo of your space or of you (the caregiver) works great.</p>
+      <div class="msg" id="photoMsg"></div>
+
+      <button class="btn" id="saveBtn" type="button" style="display:none;">Save listing</button>
+      <button class="btn btn-quiet" id="cancelEditBtn" type="button" style="display:none;">Cancel</button>
       <div class="msg" id="saveMsg"></div>
     </div>
 
@@ -244,6 +256,25 @@
     await loadInquiries(user);
   }
 
+  // ---------- edit mode ----------
+  const PROFILE_FIELDS = ['fBiz', 'fContact', 'fPhone', 'fCity', 'fType', 'fAges', 'fPrice', 'fBio'];
+  const editBtn = document.getElementById('editBtn');
+  const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+  function setEditMode(on) {
+    PROFILE_FIELDS.forEach(id => { document.getElementById(id).disabled = !on; });
+    editBtn.style.display = on ? 'none' : 'block';
+    saveBtn.style.display = on ? 'block' : 'none';
+    cancelEditBtn.style.display = on ? 'block' : 'none';
+  }
+
+  editBtn.onclick = () => setEditMode(true);
+  cancelEditBtn.onclick = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) await loadProfile(user);
+    setEditMode(false);
+  };
+
   async function loadProfile(user) {
     const { data: p } = await supabase.from('providers').select('*').eq('id', user.id).maybeSingle();
     const statusRow = document.getElementById('statusRow');
@@ -257,6 +288,13 @@
       document.getElementById('fAges').value = p.ages_served ?? '';
       document.getElementById('fPrice').value = p.price_range ?? '';
       document.getElementById('fBio').value = p.bio ?? '';
+      const photoPreview = document.getElementById('photoPreview');
+      if (p.photo_url) {
+        photoPreview.src = p.photo_url;
+        photoPreview.style.display = 'block';
+      } else {
+        photoPreview.style.display = 'none';
+      }
       if (p.is_approved) {
         statusRow.innerHTML = '<span class="status live">● Live — visible to families</span>';
         pendingNote.style.display = 'none';
@@ -264,9 +302,11 @@
         statusRow.innerHTML = '<span class="status pending">● Pending review</span>';
         pendingNote.style.display = 'block';
       }
+      setEditMode(false);
     } else {
       statusRow.innerHTML = '<span class="status pending">● No listing yet — fill out your profile below</span>';
       pendingNote.style.display = 'none';
+      setEditMode(true);
     }
   }
 
@@ -298,6 +338,44 @@
     if (error) return show(saveMsg, 'Could not save: ' + error.message, 'err');
     show(saveMsg, 'Saved! Your listing is up to date.', 'ok');
     loadProfile(user);
+  };
+
+  // ---------- photo upload ----------
+  const EXT_BY_TYPE = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+  const photoMsg = document.getElementById('photoMsg');
+
+  document.getElementById('fPhoto').onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const ext = EXT_BY_TYPE[file.type];
+    if (!ext) return show(photoMsg, 'Please choose a JPG, PNG, or WEBP image.', 'err');
+    if (file.size > 5 * 1024 * 1024) return show(photoMsg, 'That image is over 5MB — please choose a smaller one.', 'err');
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return location.reload();
+
+    show(photoMsg, 'Uploading…', 'ok');
+    const path = `${user.id}/listing.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from('provider-photos')
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (uploadError) return show(photoMsg, 'Could not upload: ' + uploadError.message, 'err');
+
+    const { data: pub } = supabase.storage.from('provider-photos').getPublicUrl(path);
+    const photoUrl = pub.publicUrl + '?v=' + Date.now();
+
+    const { error: saveError } = await supabase.from('providers').upsert({
+      id: user.id,
+      email: user.email,
+      photo_url: photoUrl
+    });
+    if (saveError) return show(photoMsg, 'Uploaded, but could not save: ' + saveError.message, 'err');
+
+    document.getElementById('photoPreview').src = photoUrl;
+    document.getElementById('photoPreview').style.display = 'block';
+    show(photoMsg, 'Photo updated!', 'ok');
   };
 
   async function loadInquiries(user) {

@@ -295,9 +295,10 @@
 
   async function rejectProvider(id) {
     const note = prompt("Why are you rejecting/revoking this listing? Optional — only you will ever see this note.");
+    if (note === null) return;
     const { error } = await supabase.from('providers').update({ is_approved: false, review_status: 'rejected' }).eq('id', id);
     if (error) return alert('Could not update: ' + error.message);
-    if (note && note.trim()) {
+    if (note.trim()) {
       await supabase.from('admin_notes').insert({ provider_id: id, note: note.trim() });
     }
     loadProviders();

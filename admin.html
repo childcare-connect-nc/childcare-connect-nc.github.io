@@ -54,6 +54,15 @@
   .status-pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 11px; white-space: nowrap; }
   .status-pill.pending { background: #FEF3E2; color: #9A6A12; }
   .status-pill.live { background: var(--teal-soft); color: var(--teal); }
+  .status-pill.rejected { background: #FBE9E7; color: var(--red); }
+  .reject-btn { background: #fff; color: var(--red); border: 1px solid #F3C9C4 !important; }
+  .reject-btn:hover { background: #FBE9E7; }
+  .reopen-btn { background: #fff; color: var(--muted); border: 1px solid var(--line) !important; }
+  .reopen-btn:hover { background: var(--cream); }
+  .notes-block { margin-top: 10px; padding: 10px 12px; background: #FBE9E7; border-radius: 10px; }
+  .notes-block .note-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--red); margin-bottom: 4px; }
+  .notes-block .note { font-size: 13px; color: var(--ink); margin-bottom: 4px; }
+  .notes-block .note-date { font-size: 11px; color: var(--muted); }
   .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 30px 0; }
   .section-label { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 26px 0 10px; }
   .section-label:first-child { margin-top: 0; }
@@ -108,6 +117,9 @@
 
     <div class="section-label">Approved &amp; live</div>
     <div class="plist" id="approvedList"></div>
+
+    <div class="section-label">Rejected</div>
+    <div class="plist" id="rejectedList"></div>
   </div>
 
 </div>
@@ -180,32 +192,72 @@
 
     const pendingList = document.getElementById('pendingList');
     const approvedList = document.getElementById('approvedList');
+    const rejectedList = document.getElementById('rejectedList');
 
     if (error) {
       pendingList.innerHTML = `<p class="empty">Could not load listings: ${escapeHtml(error.message)}</p>`;
       return;
     }
 
-    const pending = (rows ?? []).filter(p => !p.is_approved);
-    const approved = (rows ?? []).filter(p => p.is_approved);
+    const { data: notes } = await supabase
+      .from('admin_notes')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const notesByProvider = {};
+    (notes ?? []).forEach(n => {
+      (notesByProvider[n.provider_id] ??= []).push(n);
+    });
+
+    const pending = (rows ?? []).filter(p => p.review_status === 'pending');
+    const approved = (rows ?? []).filter(p => p.review_status === 'approved');
+    const rejected = (rows ?? []).filter(p => p.review_status === 'rejected');
 
     pendingList.innerHTML = pending.length
-      ? pending.map(p => renderRow(p, false)).join('')
+      ? pending.map(p => renderRow(p, notesByProvider[p.id])).join('')
       : '<p class="empty">No pending listings right now.</p>';
 
     approvedList.innerHTML = approved.length
-      ? approved.map(p => renderRow(p, true)).join('')
+      ? approved.map(p => renderRow(p, notesByProvider[p.id])).join('')
       : '<p class="empty">No approved listings yet.</p>';
 
+    rejectedList.innerHTML = rejected.length
+      ? rejected.map(p => renderRow(p, notesByProvider[p.id])).join('')
+      : '<p class="empty">No rejected listings.</p>';
+
     document.querySelectorAll('button[data-approve]').forEach(btn => {
-      btn.onclick = () => setApproval(btn.dataset.approve, true);
+      btn.onclick = () => approveProvider(btn.dataset.approve);
     });
-    document.querySelectorAll('button[data-revoke]').forEach(btn => {
-      btn.onclick = () => setApproval(btn.dataset.revoke, false);
+    document.querySelectorAll('button[data-reject]').forEach(btn => {
+      btn.onclick = () => rejectProvider(btn.dataset.reject);
+    });
+    document.querySelectorAll('button[data-reopen]').forEach(btn => {
+      btn.onclick = () => reopenProvider(btn.dataset.reopen);
     });
   }
 
-  function renderRow(p, isApproved) {
+  function renderRow(p, notes) {
+    const status = p.review_status;
+    const statusLabel = status === 'approved' ? '● Live' : status === 'rejected' ? '● Rejected' : '● Pending';
+
+    let actions = '';
+    if (status === 'pending') {
+      actions = `<button class="approve-btn" type="button" data-approve="${p.id}">Approve</button>
+                 <button class="reject-btn" type="button" data-reject="${p.id}">Reject</button>`;
+    } else if (status === 'approved') {
+      actions = `<button class="reject-btn" type="button" data-reject="${p.id}">Revoke</button>`;
+    } else {
+      actions = `<button class="approve-btn" type="button" data-approve="${p.id}">Approve</button>
+                 <button class="reopen-btn" type="button" data-reopen="${p.id}">Move to pending</button>`;
+    }
+
+    const notesHtml = (status === 'rejected' && notes && notes.length)
+      ? `<div class="notes-block">
+           <div class="note-label">Admin notes (not visible to provider)</div>
+           ${notes.map(n => `<div class="note">${escapeHtml(n.note)}</div><div class="note-date">${new Date(n.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>`).join('')}
+         </div>`
+      : '';
+
     return `
       <div class="prow">
         <div class="top">
@@ -213,7 +265,7 @@
             <h3>${escapeHtml(p.business_name || '(no business name yet)')}</h3>
             <span class="type">${escapeHtml(p.care_type || '—')}</span>
           </div>
-          <span class="status-pill ${isApproved ? 'live' : 'pending'}">${isApproved ? '● Live' : '● Pending'}</span>
+          <span class="status-pill ${status}">${statusLabel}</span>
         </div>
         <div class="deets">
           <strong>${escapeHtml(p.city || '—')}</strong>
@@ -224,19 +276,29 @@
           ${escapeHtml(p.contact_name || '—')} · <a href="mailto:${escapeHtml(p.email)}" style="color:var(--teal);">${escapeHtml(p.email || '')}</a>${p.phone ? ' · ' + escapeHtml(p.phone) : ''}
         </div>
         ${p.bio ? `<p class="bio">${escapeHtml(p.bio)}</p>` : ''}
-        <div class="actions">
-          ${isApproved
-            ? `<button class="revoke-btn" type="button" data-revoke="${p.id}">Revoke approval</button>`
-            : `<button class="approve-btn" type="button" data-approve="${p.id}">Approve</button>`}
-        </div>
+        ${notesHtml}
+        <div class="actions">${actions}</div>
       </div>`;
   }
 
-  async function setApproval(id, value) {
-    const { error } = await supabase.from('providers').update({ is_approved: value }).eq('id', id);
-    if (error) {
-      alert('Could not update: ' + error.message);
-      return;
+  async function approveProvider(id) {
+    const { error } = await supabase.from('providers').update({ is_approved: true, review_status: 'approved' }).eq('id', id);
+    if (error) return alert('Could not update: ' + error.message);
+    loadProviders();
+  }
+
+  async function reopenProvider(id) {
+    const { error } = await supabase.from('providers').update({ is_approved: false, review_status: 'pending' }).eq('id', id);
+    if (error) return alert('Could not update: ' + error.message);
+    loadProviders();
+  }
+
+  async function rejectProvider(id) {
+    const note = prompt("Why are you rejecting/revoking this listing? Optional — only you will ever see this note.");
+    const { error } = await supabase.from('providers').update({ is_approved: false, review_status: 'rejected' }).eq('id', id);
+    if (error) return alert('Could not update: ' + error.message);
+    if (note && note.trim()) {
+      await supabase.from('admin_notes').insert({ provider_id: id, note: note.trim() });
     }
     loadProviders();
   }

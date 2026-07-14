@@ -378,6 +378,12 @@
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return location.reload();
 
+    const { data: existing } = await supabase.from('providers').select('id').eq('id', user.id).maybeSingle();
+    if (!existing) {
+      e.target.value = '';
+      return show(photoMsg, 'Please fill in and save your profile details first, then come back to add a photo.', 'err');
+    }
+
     show(photoMsg, 'Uploading…', 'ok');
     const path = `${user.id}/listing.${ext}`;
     const { error: uploadError } = await supabase.storage

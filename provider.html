@@ -116,62 +116,66 @@
     <div class="card">
       <h2 style="font-size:19px;margin-bottom:4px;">Profile details</h2>
       <p style="font-size:13.5px;">This is what families will see.</p>
+
+      <div id="profileSummary"></div>
       <button class="btn btn-quiet" id="editBtn" type="button">Edit profile</button>
 
-      <label for="fBiz">Business or provider name *</label>
-      <input id="fBiz" disabled placeholder="Sunny Days Daycare">
+      <div id="profileForm" style="display:none;">
+        <label for="fBiz">Business or provider name *</label>
+        <input id="fBiz" placeholder="Sunny Days Daycare">
 
-      <label for="fContact">Your name *</label>
-      <input id="fContact" disabled placeholder="First and last name">
+        <label for="fContact">Your name *</label>
+        <input id="fContact" placeholder="First and last name">
 
-      <label for="fPhone">Phone</label>
-      <input id="fPhone" type="tel" disabled placeholder="(910) 555-0100">
+        <label for="fPhone">Phone</label>
+        <input id="fPhone" type="tel" placeholder="(910) 555-0100">
 
-      <label for="fCity">City *</label>
-      <select id="fCity" disabled>
-        <option value="">Choose a city…</option>
-        <option>Wilmington</option>
-        <option>Raleigh</option>
-        <option>Charlotte</option>
-        <option>Other NC</option>
-      </select>
+        <label for="fCity">City *</label>
+        <select id="fCity">
+          <option value="">Choose a city…</option>
+          <option>Wilmington</option>
+          <option>Raleigh</option>
+          <option>Charlotte</option>
+          <option>Other NC</option>
+        </select>
 
-      <label for="fType">Type of care *</label>
-      <select id="fType" disabled>
-        <option value="">Choose one…</option>
-        <option>Licensed daycare center</option>
-        <option>In-home childcare</option>
-        <option>Nanny / babysitter</option>
-        <option>After-school program</option>
-      </select>
+        <label for="fType">Type of care *</label>
+        <select id="fType">
+          <option value="">Choose one…</option>
+          <option>Licensed daycare center</option>
+          <option>In-home childcare</option>
+          <option>Nanny / babysitter</option>
+          <option>After-school program</option>
+        </select>
 
-      <label for="fAges">Ages served</label>
-      <input id="fAges" disabled placeholder="e.g. Infants to 5 years">
+        <label for="fAges">Ages served</label>
+        <input id="fAges" placeholder="e.g. Infants to 5 years">
 
-      <label for="fPrice">Price range</label>
-      <input id="fPrice" disabled placeholder="e.g. $150–220/week">
-      <p class="hint">Families consistently say up-front pricing is the #1 thing they want to see.</p>
+        <label for="fPrice">Price range</label>
+        <input id="fPrice" placeholder="e.g. $150–220/week">
+        <p class="hint">Families consistently say up-front pricing is the #1 thing they want to see.</p>
 
-      <label for="fStartingPrice">Starting price (just the number)</label>
-      <input id="fStartingPrice" type="number" min="0" step="0.01" disabled placeholder="e.g. 150">
-      <p class="hint">Used to sort listings by price on the browse page — enter your lowest weekly or hourly rate as a plain number.</p>
+        <label for="fStartingPrice">Starting price (just the number)</label>
+        <input id="fStartingPrice" type="number" min="0" step="0.01" placeholder="e.g. 150">
+        <p class="hint">Used to sort listings by price on the browse page — enter your lowest weekly or hourly rate as a plain number.</p>
 
-      <label for="fBio">About you *</label>
-      <textarea id="fBio" disabled placeholder="Tell families about your experience, your space, your approach to care, and anything that makes you special."></textarea>
+        <label for="fBio">About you *</label>
+        <textarea id="fBio" placeholder="Tell families about your experience, your space, your approach to care, and anything that makes you special."></textarea>
 
-      <label for="fPhoto">Profile photo</label>
-      <div style="display:flex;align-items:center;gap:14px;">
-        <img id="photoPreview" alt="Your current profile photo" style="width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--teal-soft);display:none;flex-shrink:0;">
-        <div style="flex:1;">
-          <input type="file" id="fPhoto" accept="image/jpeg,image/png,image/webp">
+        <label for="fPhoto">Profile photo</label>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <img id="photoPreview" alt="Your current profile photo" style="width:64px;height:64px;border-radius:12px;object-fit:cover;background:var(--teal-soft);display:none;flex-shrink:0;">
+          <div style="flex:1;">
+            <input type="file" id="fPhoto" accept="image/jpeg,image/png,image/webp">
+          </div>
         </div>
-      </div>
-      <p class="hint">JPG, PNG, or WEBP, up to 5MB. Please don't include children's faces — a photo of your space or of you (the caregiver) works great.</p>
-      <div class="msg" id="photoMsg"></div>
+        <p class="hint">JPG, PNG, or WEBP, up to 5MB. Please don't include children's faces — a photo of your space or of you (the caregiver) works great.</p>
+        <div class="msg" id="photoMsg"></div>
 
-      <button class="btn" id="saveBtn" type="button" style="display:none;">Save listing</button>
-      <button class="btn btn-quiet" id="cancelEditBtn" type="button" style="display:none;">Cancel</button>
-      <div class="msg" id="saveMsg"></div>
+        <button class="btn" id="saveBtn" type="button">Save listing</button>
+        <button class="btn btn-quiet" id="cancelEditBtn" type="button">Cancel</button>
+        <div class="msg" id="saveMsg"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -261,15 +265,27 @@
   }
 
   // ---------- edit mode ----------
-  const PROFILE_FIELDS = ['fBiz', 'fContact', 'fPhone', 'fCity', 'fType', 'fAges', 'fPrice', 'fStartingPrice', 'fBio'];
   const editBtn = document.getElementById('editBtn');
   const cancelEditBtn = document.getElementById('cancelEditBtn');
+  const profileForm = document.getElementById('profileForm');
+  const profileSummary = document.getElementById('profileSummary');
 
   function setEditMode(on) {
-    PROFILE_FIELDS.forEach(id => { document.getElementById(id).disabled = !on; });
+    profileForm.style.display = on ? 'block' : 'none';
+    profileSummary.style.display = on ? 'none' : 'block';
     editBtn.style.display = on ? 'none' : 'block';
-    saveBtn.style.display = on ? 'block' : 'none';
-    cancelEditBtn.style.display = on ? 'block' : 'none';
+  }
+
+  function renderSummary(p) {
+    if (!p) { profileSummary.innerHTML = ''; return; }
+    profileSummary.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin:10px 0 14px;">
+        ${p.photo_url ? `<img src="${escapeHtml(p.photo_url)}" alt="" style="width:52px;height:52px;border-radius:12px;object-fit:cover;flex-shrink:0;">` : ''}
+        <div>
+          <div style="font-weight:700;color:var(--ink);font-size:15.5px;">${escapeHtml(p.business_name || '(no name yet)')}</div>
+          <div style="font-size:13px;color:var(--muted);">${escapeHtml(p.care_type || '—')} · ${escapeHtml(p.city || '—')}${p.price_range ? ' · ' + escapeHtml(p.price_range) : ''}</div>
+        </div>
+      </div>`;
   }
 
   editBtn.onclick = () => setEditMode(true);
@@ -307,6 +323,7 @@
         statusRow.innerHTML = '<span class="status pending">● Pending review</span>';
         pendingNote.style.display = 'block';
       }
+      renderSummary(p);
       setEditMode(false);
     } else {
       statusRow.innerHTML = '<span class="status pending">● No listing yet — fill out your profile below</span>';

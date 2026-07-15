@@ -55,6 +55,7 @@ A childcare marketplace for North Carolina (Wilmington → Raleigh → Charlotte
 Cream background #FDFAF5; ink #11302E; body text #4F5D58; teal (trust) #0E4D4A with soft #E3EFEA; coral (warmth/CTAs) #E76F51, hover #C9543A, soft #FBE6DE; lines #E8E0D3; success green #1D9E75. Rounded (10–26px radii), pill buttons, warm + personable small-business tone — never corporate. Headings Fraunces, everything else Nunito Sans.
 
 ## Parked checklist (the backlog)
+- TOTP two-factor auth on the admin account (approved in principle by Nikieta, parked for later): enable MFA in Supabase Auth settings, add enroll/challenge flow to admin.html sign-in. Free tier supports authenticator-app TOTP. Deliberately chosen over a client-side "code word," which would be readable in page source and provide no real security.
 - Replace hero illustration on index.html with a real photo (instructions are in a comment in the file) — needs Nikieta to actually source/upload a photo; not something that can be done sight-unseen
 - Graphics fine-tuning pass — no concrete spec, needs Nikieta's creative direction
 - Re-enable Supabase email confirmation before parent-facing launch (Authentication → set Site URL to https://childcareconnectnc.com first; it was disabled deliberately to reduce founding-provider signup friction) — a dashboard/Auth-settings change only Nikieta can make
@@ -75,6 +76,8 @@ Cream background #FDFAF5; ink #11302E; body text #4F5D58; teal (trust) #0E4D4A w
 Founding-provider outreach in progress (Wilmington first: DMs from her personal Facebook + emails from the business gmail; founding offer = 6 months free, no card). First real provider signups expected via provider.html. Approval workflow: admin.html (preferred) or Supabase Table Editor → providers → set is_approved/review_status directly.
 
 ## Recently completed (most recent first)
+- Added a conditional "Admin" nav link on browse.html and provider.html — visible only when the logged-in Supabase session is the admin account (session check, not readable from source). Deliberately NOT on index.html to keep the landing page JS-free. Admin access = bookmark https://childcareconnectnc.com/admin.html or use this link.
+- Added TESTING.md: AI-assisted + human test guide with [AI]/[H]/[SQL] split, regression table of all real bugs hit so far
 - Fixed photo upload: (1) storage.objects on `provider-photos` was missing a SELECT policy, which the upsert-based upload needs internally to check whether a file already exists at that path — added one scoped to the uploader's own folder; (2) uploading a photo before ever saving profile details tried to insert a providers row with only id/email/photo_url set, violating the NOT NULL constraint on business_name — provider.html now checks a profile row already exists before allowing a photo upload, and tells the provider to save their details first if not
 - Grouped admin.html's "Pending reviews" by provider (one card with a count badge, reviews listed underneath) instead of a flat list repeating the provider name per review
 - Collapsed provider.html's profile card into a compact one-line summary by default (photo, name, type, city, price) with an Edit profile button, instead of always showing every field

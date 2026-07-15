@@ -86,7 +86,10 @@
     </span>
     ChildCare&nbsp;<span>Connect</span>
   </a>
-  <a class="plink" href="provider.html">Provider sign in</a>
+  <span>
+    <a class="plink" id="adminLink" href="admin.html" style="display:none;margin-right:18px;color:var(--teal);">Admin</a>
+    <a class="plink" href="provider.html">Provider sign in</a>
+  </span>
 </nav>
 
 <div class="wrap">
@@ -193,6 +196,12 @@
     'https://jcacedyzmsowclexnxvu.supabase.co',
     'sb_publishable_wu3vOGLswNb-8eKJ9MLEOg_mdSaiOHH'
   );
+
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user?.email === 'childcareconnectnc@gmail.com') {
+      document.getElementById('adminLink').style.display = '';
+    }
+  });
 
   const results = document.getElementById('results');
   const fCity = document.getElementById('fCity');

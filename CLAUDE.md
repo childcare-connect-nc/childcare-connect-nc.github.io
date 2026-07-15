@@ -1,7 +1,7 @@
 # ChildCare Connect — Project Brief
 
 ## What this is
-A childcare marketplace for North Carolina (Wilmington → Raleigh → Charlotte) connecting families with local childcare providers. Built and run by Nikieta, a solo founder (QA engineer by trade — fintech/banking compliance background). Budget-conscious: the entire stack must stay free or near-free. Do not introduce paid services without asking.
+A childcare marketplace for North Carolina (Wilmington → Raleigh → Charlotte) connecting families with local childcare providers. Built and run by Nikieta, a technical solo founder. (This file is publicly served at childcareconnectnc.com/CLAUDE.md — never put her personal/professional details, secrets, or anything sensitive in it.) Budget-conscious: the entire stack must stay free or near-free. Do not introduce paid services without asking.
 
 - Live site: https://childcareconnectnc.com (custom domain on GitHub Pages, HTTPS enforced)
 - Repo doubles as the host: this is a GitHub Pages user site (repo name childcare-connect-nc.github.io)
@@ -66,14 +66,14 @@ Cream background #FDFAF5; ink #11302E; body text #4F5D58; teal (trust) #0E4D4A w
 
 ## Working with Nikieta (required workflow)
 - **Explain before you act.** Before making changes, state in plain English what you're about to change and why. After changes, summarize exactly what was modified and how to test it on the live site.
-- **She asks questions — answer them properly.** She's technical (QA engineer) but new to web development. When she asks how or why something works, explain it clearly without jargon-dumping and without condescension. Teaching her the system is part of the job.
+- **She asks questions — answer them properly.** She's technical but new to web development. When she asks how or why something works, explain it clearly without jargon-dumping and without condescension. Teaching her the system is part of the job.
 - **Security changes require her explicit approval first.** Anything touching RLS policies, storage policies, auth settings, or Supabase configuration: propose it, explain the risk/benefit, and wait for her yes before applying or committing.
 - **She is the QA gate.** After every deploy, give her a short test checklist for the live site. Nothing is "done" until she's verified it works.
 - **Never commit secrets.** No service_role key, no database password, no personal data in the repo — ever, including in comments or commit messages.
 - **Don't expand scope on your own.** Stick to what she asked; if you spot something else worth doing, suggest it and let her decide.
 
 ## Current business state (July 2026)
-Founding-provider outreach in progress (Wilmington first: DMs from her personal Facebook + emails from the business gmail; founding offer = 6 months free, no card). First real provider signups expected via provider.html. Approval workflow: admin.html (preferred) or Supabase Table Editor → providers → set is_approved/review_status directly.
+Founding-provider outreach in progress (Wilmington first: direct outreach + emails from the business gmail; founding offer = 6 months free, no card). First real provider signups expected via provider.html. Approval workflow: admin.html (preferred) or Supabase Table Editor → providers → set is_approved/review_status directly.
 
 ## Recently completed (most recent first)
 - Added a "Why I built this" founder section to index.html (#founder, "Our story" in nav): Nikieta's real story — parent frustrated by un-answerable childcare questions without tours, "I validate everything before I trust it," ties into the "personally review every listing" trust model. **Her explicit privacy boundaries for public copy: first name is fine; her profession/employer/industry must NOT appear on the site.** No photo yet (easy add if she chooses).

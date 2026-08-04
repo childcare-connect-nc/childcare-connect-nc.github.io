@@ -12,7 +12,7 @@ A childcare marketplace for North Carolina (Wilmington → Raleigh → Charlotte
 - **Backend:** Supabase free tier (project: childcare-connect, region US East).
   - URL: `https://jcacedyzmsowclexnxvu.supabase.co`
   - Publishable (anon) key is embedded in provider.html and browse.html — this is intentional and safe; security lives in RLS. NEVER put the service_role key or DB password anywhere in this repo.
-- **Waitlist forms:** Tally — parents https://tally.so/r/7RPNO2, providers https://tally.so/r/7RPNY2
+- **Waitlist form:** Tally — parents https://tally.so/r/7RPNO2. (A provider form, 7RPNY2, is retired — provider.html is the self-serve signup portal and nothing links to the form anymore.)
 - **Hosting quirk:** pages must be tested on the live site, not by opening files locally (file:// breaks module imports). Deploy = commit to main, GitHub Pages auto-publishes in ~1–2 min.
 
 ## Pages
@@ -23,7 +23,7 @@ A childcare marketplace for North Carolina (Wilmington → Raleigh → Charlotte
 - `admin.html` — admin-only portal (robots: noindex, nofollow), gated to one designated login (`childcareconnectnc@gmail.com`, checked client-side; real enforcement is the RLS policies below). Lists providers in three sections — Pending review / Approved & live / Rejected — with Approve, Reject, Revoke, and Move-to-pending actions. Rejecting or revoking prompts for an optional note, saved to `admin_notes` (admin-only table). Providers never see rejection status or notes — provider.html always shows "Pending review" for both never-reviewed and rejected listings, by deliberate product choice (Nikieta follows up on rejections personally, off-platform). Also has a "Pending reviews" section for moderating parent-submitted reviews (Approve or permanently Delete — no reject-with-reason flow like providers, since reviews aren't recurring relationships to manage).
 - `terms.html`, `privacy.html` — legal pages, styled to match. Effective June 12, 2026.
 
-**Note on Tally provider link:** both this file and prior notes reference a Tally provider waitlist form (`7RPNY2`), but neither index.html nor provider.html currently links to it — the provider CTA goes straight to the real provider.html signup portal. Confirm with Nikieta whether that Tally form is still meant to be live anywhere before assuming it's part of the funnel.
+**Note on Tally provider link:** the Tally provider waitlist form (`7RPNY2`) is officially retired (decided Aug 2026) — provider.html is the full self-serve signup portal and is the only provider funnel. Do not link the form anywhere.
 
 ## Database (Supabase)
 **providers** — id (uuid, = auth.users id), business_name, contact_name, email, phone, city, care_type, ages_served (text), price_range (text, free-form display string), starting_price (numeric, nullable — plain number used only for sorting, entered alongside price_range), bio, photo_url, is_approved (boolean, default false — legacy column, no longer read anywhere; kept only because admin.html still writes it alongside review_status for backward compat), review_status (text: 'pending'|'approved'|'rejected', default 'pending' — **the actual source of truth** for both public visibility and the provider's own status badge), created_at.
@@ -55,13 +55,12 @@ A childcare marketplace for North Carolina (Wilmington → Raleigh → Charlotte
 Cream background #FDFAF5; ink #11302E; body text #4F5D58; teal (trust) #0E4D4A with soft #E3EFEA; coral (warmth/CTAs) #E76F51, hover #C9543A, soft #FBE6DE; lines #E8E0D3; success green #1D9E75. Rounded (10–26px radii), pill buttons, warm + personable small-business tone — never corporate. Headings Fraunces, everything else Nunito Sans.
 
 ## Parked checklist (the backlog)
-- TOTP two-factor auth on the admin account (approved in principle by Nikieta, parked for later): enable MFA in Supabase Auth settings, add enroll/challenge flow to admin.html sign-in. Free tier supports authenticator-app TOTP. Deliberately chosen over a client-side "code word," which would be readable in page source and provide no real security.
+- Optional 2FA hardening (needs Nikieta's approval before touching RLS): require aal2 (`auth.jwt() ->> 'aal' = 'aal2'`) in the admin RLS policies (providers admin-update, admin_notes, reviews moderation), so a stolen password alone can't perform admin actions via direct API calls either. The current 2FA gates the admin.html UI flow; RLS still keys on email only.
 - Replace hero illustration on index.html with a real photo (instructions are in a comment in the file) — needs Nikieta to actually source/upload a photo; not something that can be done sight-unseen
 - Graphics fine-tuning pass — no concrete spec, needs Nikieta's creative direction
 - Re-enable Supabase email confirmation before parent-facing launch (Authentication → set Site URL to https://childcareconnectnc.com first; it was disabled deliberately to reduce founding-provider signup friction) — a dashboard/Auth-settings change only Nikieta can make
 - Eventually: link browse.html from the homepage and switch the parent CTA from the Tally waitlist to browse (when there are enough live listings)
 - Eventually: paid provider subscriptions via Stripe (terms.html already covers this in "when paid subscriptions launch" language)
-- Decide whether the provider Tally waitlist form (7RPNY2) is still part of the funnel anywhere, or should be considered retired now that provider.html is a full self-serve signup portal
 - Consider replacing the Tally parent/provider forms with a native Supabase-backed waitlist form embedded on-site (proposed, not yet approved — would need a new `waitlist` table + insert-only RLS policy)
 
 ## Working with Nikieta (required workflow)
@@ -76,6 +75,8 @@ Cream background #FDFAF5; ink #11302E; body text #4F5D58; teal (trust) #0E4D4A w
 Founding-provider outreach in progress (Wilmington first: direct outreach + emails from the business gmail; founding offer = 6 months free, no card). First real provider signups expected via provider.html. Approval workflow: admin.html (preferred) or Supabase Table Editor → providers → set is_approved/review_status directly.
 
 ## Recently completed (most recent first)
+- Added TOTP two-factor auth to admin.html: after password sign-in on the admin account, the page checks the session's assurance level via `supabase.auth.mfa` — first sign-in shows a one-time QR-code enrollment screen, later sign-ins require the current 6-digit authenticator code before the admin app loads. Non-admin accounts see "Not authorized" as before, no MFA prompts. Uses Supabase's built-in TOTP MFA (free tier). Abandoned half-enrollments are auto-unenrolled before a fresh enroll to avoid duplicate-factor errors. Note: this gates the UI flow; RLS-level aal2 enforcement is a separate parked item needing approval.
+- Retired the Tally provider waitlist form (7RPNY2) — provider.html is the only provider funnel; parent Tally form stays
 - Added a "Why I built this" founder section to index.html (#founder, "Our story" in nav): Nikieta's real story — parent frustrated by un-answerable childcare questions without tours, "I validate everything before I trust it," ties into the "personally review every listing" trust model. **Her explicit privacy boundaries for public copy: first name is fine; her profession/employer/industry must NOT appear on the site.** No photo yet (easy add if she chooses).
 - Added a conditional "Admin" nav link on browse.html and provider.html — visible only when the logged-in Supabase session is the admin account (session check, not readable from source). Deliberately NOT on index.html to keep the landing page JS-free. Admin access = bookmark https://childcareconnectnc.com/admin.html or use this link.
 - Added TESTING.md: AI-assisted + human test guide with [AI]/[H]/[SQL] split, regression table of all real bugs hit so far

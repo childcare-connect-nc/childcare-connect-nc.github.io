@@ -64,6 +64,9 @@
   .notes-block .note { font-size: 13px; color: var(--ink); margin-bottom: 4px; }
   .notes-block .note-date { font-size: 11px; color: var(--muted); }
   .empty { text-align: center; color: var(--muted); font-size: 14px; padding: 30px 0; }
+  .mfa-qr { display: block; width: 190px; height: 190px; margin: 18px auto 10px; border: 1px solid var(--line); border-radius: 12px; background: #fff; padding: 8px; }
+  .mfa-secret { display: block; text-align: center; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; color: var(--ink); background: var(--teal-soft); border-radius: 10px; padding: 8px 12px; margin: 6px 0 4px; word-break: break-all; user-select: all; }
+  .code-input { text-align: center; letter-spacing: .35em; font-size: 19px; font-weight: 700; }
   .section-label { font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 26px 0 10px; }
   .section-label:first-child { margin-top: 0; }
 </style>
@@ -93,6 +96,35 @@
       <input id="authPass" type="password" autocomplete="current-password">
       <button class="btn" id="authBtn" type="button">Sign in</button>
       <div class="msg" id="authMsg"></div>
+    </div>
+  </div>
+
+  <!-- ============ MFA: ENROLL (first-time setup) ============ -->
+  <div id="mfaEnrollView" style="display:none;">
+    <div class="card">
+      <h1 style="font-size:24px;margin-bottom:6px;">Set up two-factor authentication</h1>
+      <p style="font-size:14px;margin-bottom:4px;">One-time setup. Scan this QR code with an authenticator app (Google Authenticator, 1Password, Authy…), then enter the 6-digit code it shows.</p>
+      <img class="mfa-qr" id="mfaQr" alt="QR code for authenticator app">
+      <p style="font-size:12.5px;text-align:center;color:var(--muted);">Can't scan? Enter this secret manually:</p>
+      <code class="mfa-secret" id="mfaSecret"></code>
+      <label for="enrollCode">6-digit code</label>
+      <input id="enrollCode" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
+      <button class="btn" id="enrollBtn" type="button">Activate two-factor</button>
+      <div class="msg" id="enrollMsg"></div>
+      <button class="signout" id="signOutEnroll" type="button" style="margin-top:14px;">Sign out</button>
+    </div>
+  </div>
+
+  <!-- ============ MFA: VERIFY (every sign-in) ============ -->
+  <div id="mfaVerifyView" style="display:none;">
+    <div class="card">
+      <h1 style="font-size:24px;margin-bottom:6px;">Two-factor check</h1>
+      <p style="font-size:14px;margin-bottom:8px;">Enter the current 6-digit code from your authenticator app.</p>
+      <label for="verifyCode">6-digit code</label>
+      <input id="verifyCode" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
+      <button class="btn" id="verifyBtn" type="button">Verify</button>
+      <div class="msg" id="verifyMsg"></div>
+      <button class="signout" id="signOutVerify" type="button" style="margin-top:14px;">Sign out</button>
     </div>
   </div>
 
@@ -138,6 +170,8 @@
   const ADMIN_EMAIL = 'childcareconnectnc@gmail.com';
 
   const authView = document.getElementById('authView');
+  const mfaEnrollView = document.getElementById('mfaEnrollView');
+  const mfaVerifyView = document.getElementById('mfaVerifyView');
   const notAuthView = document.getElementById('notAuthView');
   const appView = document.getElementById('appView');
   const authBtn = document.getElementById('authBtn');
@@ -162,11 +196,11 @@
     authBtn.disabled = false;
 
     if (error) return show(authMsg, error.message, 'err');
-    enterApp(data.user);
+    routeAfterSignIn(data.user);
   };
 
   const { data: { session } } = await supabase.auth.getSession();
-  if (session) enterApp(session.user);
+  if (session) routeAfterSignIn(session.user);
 
   function bindSignOut(id) {
     document.getElementById(id).onclick = async () => {
@@ -176,16 +210,92 @@
   }
   bindSignOut('signOut');
   bindSignOut('signOutNA');
+  bindSignOut('signOutEnroll');
+  bindSignOut('signOutVerify');
 
-  async function enterApp(user) {
+  // ---------- sign-in routing + two-factor (TOTP) ----------
+  // Password alone is aal1; a verified authenticator code upgrades the session
+  // to aal2. The admin app only opens at aal2 once a factor is enrolled.
+  async function routeAfterSignIn(user) {
     authView.style.display = 'none';
+    mfaEnrollView.style.display = 'none';
+    mfaVerifyView.style.display = 'none';
+
     if (user.email !== ADMIN_EMAIL) {
       notAuthView.style.display = 'block';
       return;
     }
+
+    const { data: aal, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error) {
+      authView.style.display = 'block';
+      return show(authMsg, 'Could not check two-factor status: ' + error.message, 'err');
+    }
+
+    if (aal.currentLevel === 'aal2') return enterApp();
+    if (aal.nextLevel === 'aal2') return showMfaVerify();
+    return showMfaEnroll();
+  }
+
+  async function enterApp() {
+    mfaEnrollView.style.display = 'none';
+    mfaVerifyView.style.display = 'none';
     appView.style.display = 'block';
     await loadProviders();
     await loadReviews();
+  }
+
+  async function showMfaEnroll() {
+    const enrollMsg = document.getElementById('enrollMsg');
+    mfaEnrollView.style.display = 'block';
+
+    // Clear out any half-finished enrollment from an abandoned attempt,
+    // otherwise a fresh enroll can fail with a duplicate-factor error.
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    for (const f of (factors?.all ?? []).filter(f => f.status === 'unverified')) {
+      await supabase.auth.mfa.unenroll({ factorId: f.id });
+    }
+
+    const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'ChildCare Connect admin' });
+    if (error) return show(enrollMsg, 'Could not start setup: ' + error.message + ' (If this says MFA is disabled, turn on TOTP in Supabase → Authentication → Multi-Factor Auth.)', 'err');
+
+    document.getElementById('mfaQr').src = data.totp.qr_code;
+    document.getElementById('mfaSecret').textContent = data.totp.secret;
+
+    document.getElementById('enrollBtn').onclick = async () => {
+      const code = document.getElementById('enrollCode').value.trim();
+      if (!/^\d{6}$/.test(code)) return show(enrollMsg, 'Enter the 6-digit code from your app.', 'err');
+      const btn = document.getElementById('enrollBtn');
+      btn.disabled = true;
+      const { error: verifyErr } = await supabase.auth.mfa.challengeAndVerify({ factorId: data.id, code });
+      btn.disabled = false;
+      if (verifyErr) return show(enrollMsg, 'That code didn\'t work — check your app and try again. (' + verifyErr.message + ')', 'err');
+      enterApp();
+    };
+  }
+
+  async function showMfaVerify() {
+    const verifyMsg = document.getElementById('verifyMsg');
+    mfaVerifyView.style.display = 'block';
+
+    const { data: factors, error } = await supabase.auth.mfa.listFactors();
+    if (error || !factors?.totp?.length) return show(verifyMsg, 'Could not load your two-factor setup. Refresh and try again.', 'err');
+    const factorId = factors.totp[0].id;
+
+    const codeInput = document.getElementById('verifyCode');
+    codeInput.value = '';
+    codeInput.focus();
+
+    document.getElementById('verifyBtn').onclick = async () => {
+      const code = codeInput.value.trim();
+      if (!/^\d{6}$/.test(code)) return show(verifyMsg, 'Enter the 6-digit code from your app.', 'err');
+      const btn = document.getElementById('verifyBtn');
+      btn.disabled = true;
+      const { error: verifyErr } = await supabase.auth.mfa.challengeAndVerify({ factorId, code });
+      btn.disabled = false;
+      if (verifyErr) return show(verifyMsg, 'That code didn\'t work — codes expire every 30 seconds, try the current one. (' + verifyErr.message + ')', 'err');
+      enterApp();
+    };
   }
 
   async function loadProviders() {

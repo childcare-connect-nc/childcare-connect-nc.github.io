@@ -319,26 +319,38 @@
 
   // ---------- Match quiz ----------
   // Answers live only in this page's memory — nothing is saved or sent anywhere.
+  // multi: true = "pick all that apply" (stored as an array); required: must pick at least one.
   const STEPS = [
     { key: 'city', q: 'Where do you need care?', hint: 'Sample listings cover Wilmington, Raleigh, and Charlotte.',
       opts: [['Wilmington'], ['Raleigh'], ['Charlotte']] },
-    { key: 'age', q: "How old is your child?", hint: 'Just an age range — we never ask for names or birthdates.',
+    { key: 'age', q: 'How old are your kids?', hint: 'Pick all that apply — just age ranges, we never ask for names or birthdates.', multi: true, required: true,
       opts: [['infant', 'Infant', 'Under 1 year'], ['toddler', 'Toddler', '1–2 years'], ['preschool', 'Preschool', '3–5 years'], ['school', 'School age', '5–12 years']] },
-    { key: 'type', q: 'What kind of care are you looking for?', hint: '',
+    { key: 'type', q: 'What kind of care are you open to?', hint: 'Pick all that apply.', multi: true, required: true, exclusive: 'any',
       opts: [['Licensed daycare center', 'Daycare center'], ['In-home childcare', 'In-home daycare'], ['Nanny / babysitter', 'Nanny / babysitter'], ['After-school program', 'After-school program'], ['any', 'No preference']] },
-    { key: 'schedule', q: 'What schedule do you need?', hint: '',
+    { key: 'schedule', q: 'What schedule do you need?', hint: 'Pick all that apply.', multi: true, required: true,
       opts: [['full', 'Full-time', 'Weekdays, all day'], ['part', 'Part-time', 'Some days or half days'], ['evening', 'Evenings / weekends', 'Shift work, nights'], ['dropin', 'Occasional / drop-in', 'Date nights, backup care']] },
     { key: 'budget', q: "What's your weekly budget?", hint: 'A rough range is fine.',
       opts: [['0-125', 'Under $125'], ['125-175', '$125–$175'], ['175-225', '$175–$225'], ['225-9999', '$225+'], ['any', 'Not sure yet']] },
-    { key: 'priorities', q: 'What matters most to you?', hint: 'Pick up to 3. These count extra toward your fit.', multi: 3,
+    { key: 'priorities', q: 'What matters most to you?', hint: 'Pick as many as you like (or none). These count extra toward your fit.', multi: true,
       opts: [['openings', 'Openings right now'], ['stars', 'NC 4–5 star rated license'], ['meals', 'Meals included'], ['subsidy', 'Accepts NC childcare subsidy'], ['spanish', 'Spanish spoken'], ['curriculum', 'Structured curriculum']] }
   ];
 
   const AGE_LABEL = { infant: 'infants', toddler: 'toddlers', preschool: 'preschoolers', school: 'school-age kids' };
   const SCHED_LABEL = { full: 'full-time', part: 'part-time', evening: 'evening/weekend', dropin: 'drop-in' };
 
+  // ['a'] → 'a', ['a','b'] → 'a and b', ['a','b','c'] → 'a, b, and c'
+  function joinList(items, word = 'and') {
+    if (items.length < 3) return items.join(` ${word} `);
+    return items.slice(0, -1).join(', ') + `, ${word} ` + items[items.length - 1];
+  }
+  const ageText = ages => joinList(ages.map(a => AGE_LABEL[a]));
+
+  function freshAnswers() {
+    return { age: [], type: [], schedule: [], priorities: [] };
+  }
+
   let step = 0;
-  let answers = { priorities: [] };
+  let answers = freshAnswers();
 
   const quizEl = document.getElementById('quiz');
   const matchCta = document.getElementById('matchCta');
@@ -354,7 +366,7 @@
 
   function startQuiz() {
     step = 0;
-    answers = { priorities: [] };
+    answers = freshAnswers();
     matchCta.hidden = true;
     filtersEl.hidden = true;
     resultsEl.innerHTML = '';
@@ -364,7 +376,9 @@
 
   function drawStep() {
     const s = STEPS[step];
-    const picked = s.multi ? answers.priorities : [answers[s.key]];
+    const picked = s.multi ? answers[s.key] : [answers[s.key]];
+    const isLast = step === STEPS.length - 1;
+    const canGo = !s.required || picked.length > 0;
     quizEl.innerHTML = `
       <div class="quiz-top">
         <span>Question ${step + 1} of ${STEPS.length}</span>
@@ -375,21 +389,23 @@
       ${s.hint ? `<p class="hint">${s.hint}</p>` : '<div style="height:14px"></div>'}
       <div class="opts">
         ${s.opts.map(([val, label, sub]) => `
-          <button type="button" class="opt${picked.includes(val) ? ' on' : ''}" data-val="${val}">
+          <button type="button" class="opt${picked.includes(val) ? ' on' : ''}" data-val="${val}" aria-pressed="${picked.includes(val)}">
             ${label || val}${sub ? `<small>${sub}</small>` : ''}
           </button>`).join('')}
       </div>
       <div class="quiz-nav">
         <button type="button" class="btn btn-ghost" id="quizBack" ${step === 0 ? 'style="visibility:hidden"' : ''}>&larr; Back</button>
-        ${s.multi ? `<button type="button" class="btn btn-coral" id="quizDone">See my matches &rarr;</button>` : ''}
+        ${s.multi ? `<button type="button" class="btn btn-coral" id="quizNext" ${canGo ? '' : 'disabled'}>${isLast ? 'See my matches' : 'Next'} &rarr;</button>` : ''}
       </div>`;
 
     quizEl.querySelectorAll('.opt').forEach(btn => btn.onclick = () => {
       const val = btn.dataset.val;
       if (s.multi) {
-        const list = answers.priorities;
-        if (list.includes(val)) list.splice(list.indexOf(val), 1);
-        else if (list.length < s.multi) list.push(val);
+        let list = answers[s.key];
+        if (list.includes(val)) list = list.filter(v => v !== val);
+        else if (s.exclusive && val === s.exclusive) list = [val];   // "No preference" clears the rest
+        else list = list.filter(v => v !== s.exclusive).concat(val); // picking a type clears "No preference"
+        answers[s.key] = list;
         drawStep();
       } else {
         answers[s.key] = val;
@@ -399,8 +415,11 @@
     });
     document.getElementById('quizClose').onclick = showBrowse;
     document.getElementById('quizBack').onclick = () => { step--; drawStep(); };
-    const done = document.getElementById('quizDone');
-    if (done) done.onclick = showMatches;
+    const next = document.getElementById('quizNext');
+    if (next) next.onclick = () => {
+      if (isLast) showMatches();
+      else { step++; drawStep(); }
+    };
   }
 
   // Each criterion returns { state: 'yes' | 'no' | 'unk', text, ask }.
@@ -409,18 +428,35 @@
     const out = [];
     const pri = answers.priorities;
 
-    out.push({ key: 'age', weight: 0, state: 'yes', text: `Serves ${AGE_LABEL[answers.age]}` });
-
-    if (answers.type !== 'any') {
-      out.push({ key: 'type', weight: 2, state: p.type === answers.type ? 'yes' : 'no',
-        text: p.type === answers.type ? p.type : `${p.type} (not ${answers.type.toLowerCase()})` });
+    // Age: providers serving none of the ages are filtered out before this runs.
+    // With siblings, serving every age counts toward fit; one age is display-only.
+    const served = answers.age.filter(a => p.ageGroups.includes(a));
+    if (answers.age.length === 1) {
+      out.push({ key: 'age', weight: 0, state: 'yes', text: `Serves ${ageText(served)}` });
+    } else if (served.length === answers.age.length) {
+      out.push({ key: 'age', weight: 2, state: 'yes', text: `Serves ${ageText(served)}` });
+    } else {
+      const missing = answers.age.filter(a => !served.includes(a));
+      out.push({ key: 'age', weight: 2, state: 'no', text: `Serves ${ageText(served)} only (not ${ageText(missing)})` });
     }
 
-    const sched = SCHED_LABEL[answers.schedule];
-    out.push(p.schedules == null
-      ? { key: 'schedule', weight: 1, state: 'unk', text: 'Schedule not listed', ask: 'your schedule and hours' }
-      : { key: 'schedule', weight: 1, state: p.schedules.includes(answers.schedule) ? 'yes' : 'no',
-          text: p.schedules.includes(answers.schedule) ? `Offers ${sched} care` : `No ${sched} care` });
+    if (!answers.type.includes('any')) {
+      const ok = answers.type.includes(p.type);
+      out.push({ key: 'type', weight: 2, state: ok ? 'yes' : 'no',
+        text: ok ? p.type : `${p.type} (not what you picked)` });
+    }
+
+    // Schedule: one line per schedule picked, sharing a total weight of 1
+    // so ticking more boxes doesn't tilt the score toward schedule.
+    if (p.schedules == null) {
+      out.push({ key: 'schedule', weight: 1, state: 'unk', text: 'Schedule not listed', ask: 'your schedule and hours' });
+    } else {
+      answers.schedule.forEach(sc => {
+        const ok = p.schedules.includes(sc);
+        out.push({ key: 'schedule', weight: 1 / answers.schedule.length, state: ok ? 'yes' : 'no',
+          text: ok ? `Offers ${SCHED_LABEL[sc]} care` : `No ${SCHED_LABEL[sc]} care` });
+      });
+    }
 
     if (answers.budget !== 'any') {
       const [bMin, bMax] = answers.budget.split('-').map(Number);
@@ -468,7 +504,7 @@
   function showMatches() {
     quizEl.hidden = true;
     const inCity = SAMPLE_PROVIDERS.filter(p => p.city === answers.city);
-    const eligible = inCity.filter(p => p.ageGroups.includes(answers.age));
+    const eligible = inCity.filter(p => answers.age.some(a => p.ageGroups.includes(a)));
     const ranked = eligible
       .map(p => { const c = checkCriteria(p); return { p, c, fit: fitScore(c) }; })
       .sort((a, b) => b.fit - a.fit || b.p.rating - a.p.rating);
@@ -515,8 +551,8 @@
       </details>
       ${ranked.length
         ? `<div class="grid">${cards}</div>`
-        : `<div class="grid"><div class="state">No sample listings in ${answers.city} serve ${AGE_LABEL[answers.age]} — once real providers join, you'll see more options here.</div></div>`}
-      ${excluded > 0 ? `<p class="excluded">${excluded} other sample listing${excluded > 1 ? 's' : ''} in ${answers.city} ${excluded > 1 ? "don't" : "doesn't"} serve ${AGE_LABEL[answers.age]}, so ${excluded > 1 ? "they're" : "it's"} not shown.</p>` : ''}`;
+        : `<div class="grid"><div class="state">No sample listings in ${answers.city} serve ${joinList(answers.age.map(a => AGE_LABEL[a]), 'or')} — once real providers join, you'll see more options here.</div></div>`}
+      ${excluded > 0 ? `<p class="excluded">${excluded} other sample listing${excluded > 1 ? 's' : ''} in ${answers.city} ${excluded > 1 ? "don't" : "doesn't"} serve ${joinList(answers.age.map(a => AGE_LABEL[a]), 'or')}, so ${excluded > 1 ? "they're" : "it's"} not shown.</p>` : ''}`;
 
     document.getElementById('retake').onclick = startQuiz;
     document.getElementById('seeAll').onclick = showBrowse;

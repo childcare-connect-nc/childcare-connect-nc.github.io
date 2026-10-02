@@ -28,6 +28,7 @@
     --line: #E8E0D3; --green: #1D9E75; --amber: #EF9F27;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  [hidden] { display: none !important; }
   body { font-family: 'Nunito Sans', system-ui, sans-serif; background: var(--cream); color: var(--body); line-height: 1.65; }
   h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; color: var(--ink); font-weight: 600; line-height: 1.2; }
   a { color: inherit; }
@@ -82,6 +83,51 @@
   .btn-coral { background: var(--coral); color: #fff; }
   .btn-coral:hover { background: var(--coral-dark); transform: translateY(-1px); }
 
+
+  /* ---------- Match quiz ---------- */
+  .match-cta { background: var(--teal); color: #fff; border-radius: 20px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .match-cta h2 { color: #fff; font-size: 20px; margin-bottom: 2px; }
+  .match-cta p { color: #CFE3DD; font-size: 14px; }
+  .match-cta .btn-coral { flex-shrink: 0; }
+
+  .quiz { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 28px 26px; max-width: 640px; margin: 0 auto 28px; }
+  .quiz-top { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
+  .quiz-top button { background: none; border: none; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; }
+  .progress { height: 6px; background: var(--teal-soft); border-radius: 3px; overflow: hidden; margin-bottom: 22px; }
+  .progress div { height: 100%; background: var(--teal-mid); border-radius: 3px; transition: width .25s; }
+  .quiz h2 { font-size: 22px; margin-bottom: 4px; }
+  .quiz .hint { font-size: 13.5px; color: var(--muted); margin-bottom: 18px; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 560px) { .opts { grid-template-columns: 1fr; } }
+  .opt { text-align: left; padding: 14px 16px; border: 1.5px solid var(--line); border-radius: 14px; background: #fff; font-family: inherit; font-size: 14.5px; font-weight: 700; color: var(--ink); cursor: pointer; transition: border-color .12s, background .12s; }
+  .opt small { display: block; font-weight: 600; color: var(--muted); font-size: 12.5px; }
+  .opt:hover { border-color: var(--teal-mid); }
+  .opt.on { border-color: var(--teal); background: var(--teal-soft); }
+  .quiz-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 22px; gap: 12px; }
+  .btn-ghost { background: none; color: var(--teal); padding: 12px 6px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+  .match-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  .match-head h2 { font-size: 24px; }
+  .match-head .links { display: flex; gap: 16px; font-size: 13.5px; font-weight: 700; }
+  .match-head .links button { background: none; border: none; font-family: inherit; font-size: 13.5px; font-weight: 700; color: var(--teal); cursor: pointer; padding: 0; }
+  .fit-note { background: var(--teal-soft); color: var(--teal); border-radius: 14px; padding: 12px 16px; font-size: 13px; margin-bottom: 18px; }
+  .fit-note summary { cursor: pointer; font-weight: 700; }
+  .fit-note p { margin-top: 6px; }
+  .fit { display: inline-flex; align-items: baseline; gap: 5px; align-self: flex-start; background: var(--coral-soft); color: var(--coral-dark); border-radius: 12px; padding: 5px 12px; font-weight: 700; font-size: 13px; }
+  .fit strong { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1; }
+  .fit.high { background: #E3F5EC; color: var(--green); }
+  .reasons { list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13.5px; margin: 4px 0; }
+  .reasons li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .reasons .ic { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .ic.yes { background: #E3F5EC; color: var(--green); }
+  .ic.no { background: #F3EFE8; color: var(--muted); }
+  .ic.unk { background: #FDF0DC; color: #B26B00; }
+  .pcard .ask { margin-top: 0; opacity: 1; background: none; border: 1px solid var(--teal-mid); color: var(--teal); border-radius: 12px; padding: 2px 10px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .ask-preview { display: none; background: var(--cream); border: 1px dashed var(--line); border-radius: 12px; padding: 10px 13px; font-size: 13px; }
+  .ask-preview.show { display: block; }
+  .excluded { text-align: center; font-size: 13.5px; color: var(--muted); margin-top: 16px; }
+
   footer { border-top: 1px solid var(--line); padding: 36px 0 44px; text-align: center; font-size: 13.5px; color: var(--muted); }
   footer a { color: var(--teal); font-weight: 600; }
 </style>
@@ -110,7 +156,17 @@
     <p>Every listing will be personally reviewed before it goes live — here's a look at how results will appear.</p>
   </div>
 
-  <div class="filters">
+  <div class="match-cta" id="matchCta">
+    <div>
+      <h2>Not sure where to start?</h2>
+      <p>Answer 6 quick questions and we'll rank listings by how well they fit your family.</p>
+    </div>
+    <button type="button" class="btn btn-coral" id="startQuiz">Find my match &rarr;</button>
+  </div>
+
+  <div class="quiz" id="quiz" hidden></div>
+
+  <div class="filters" id="filters">
     <select id="fCity" aria-label="Filter by city">
       <option value="">All cities</option>
       <option>Wilmington</option>
@@ -146,54 +202,64 @@
 
 <script>
   // Sample data only — for preview purposes. No real providers or families are represented.
+  // Quiz fields: ageGroups, schedules, weekly [min,max] (null = not listed), openings, ncStars
+  // (null = not listed, 0 = not state-rated), meals, subsidy, spanish, curriculum. null always means "not listed".
   const SAMPLE_PROVIDERS = [
     {
-      name: 'Little Sprouts Daycare',
-      initials: 'LS',
-      avatarBg: '#0E4D4A',
-      type: 'Licensed daycare center',
-      city: 'Wilmington',
-      neighborhood: 'Wrightsville Beach Rd',
-      ages: 'Infant – Preschool (0–5 yrs)',
-      price: '$180–$220 / week',
-      rating: 4.9,
-      bio: 'A bright, play-based daycare with a fenced outdoor garden and small class sizes. Now enrolling for fall.'
+      name: 'Little Sprouts Daycare', initials: 'LS', avatarBg: '#0E4D4A',
+      type: 'Licensed daycare center', city: 'Wilmington', neighborhood: 'Wrightsville Beach Rd',
+      ages: 'Infant – Preschool (0–5 yrs)', price: '$180–$220 / week', rating: 4.9,
+      bio: 'A bright, play-based daycare with a fenced outdoor garden and small class sizes. Now enrolling for fall.',
+      ageGroups: ['infant', 'toddler', 'preschool'], schedules: ['full', 'part'], weekly: [180, 220],
+      openings: true, ncStars: 5, meals: true, subsidy: true, spanish: false, curriculum: 'Play-based'
     },
     {
-      name: "Ms. Dana's In-Home Care",
-      initials: 'DC',
-      avatarBg: '#E76F51',
-      type: 'In-home childcare',
-      city: 'Wilmington',
-      neighborhood: 'Ogden',
-      ages: 'Toddler – Preschool (1–5 yrs)',
-      price: '$150–$190 / week',
-      rating: 4.8,
-      bio: 'A cozy, home-based setting with a warm daily routine of reading, outside time, and hands-on activities.'
+      name: "Ms. Dana's In-Home Care", initials: 'DC', avatarBg: '#E76F51',
+      type: 'In-home childcare', city: 'Wilmington', neighborhood: 'Ogden',
+      ages: 'Toddler – Preschool (1–5 yrs)', price: '$150–$190 / week', rating: 4.8,
+      bio: 'A cozy, home-based setting with a warm daily routine of reading, outside time, and hands-on activities.',
+      ageGroups: ['toddler', 'preschool'], schedules: ['full'], weekly: [150, 190],
+      openings: false, ncStars: 4, meals: true, subsidy: null, spanish: true, curriculum: null
     },
     {
-      name: 'Oak City After School Club',
-      initials: 'OC',
-      avatarBg: '#0E4D4A',
-      type: 'After-school program',
-      city: 'Raleigh',
-      neighborhood: 'North Hills',
-      ages: 'School age (5–12 yrs)',
-      price: '$90–$120 / week',
-      rating: 5.0,
-      bio: 'Homework help, snacks, and structured activities right after the bell — with pickup from three nearby schools.'
+      name: 'Cape Fear Learning Academy', initials: 'CF', avatarBg: '#2A9D8F',
+      type: 'Licensed daycare center', city: 'Wilmington', neighborhood: 'Monkey Junction',
+      ages: 'Infant – Preschool (0–5 yrs)', price: '$200–$250 / week', rating: 4.6,
+      bio: 'A larger center with separate infant, toddler, and pre-K classrooms and a structured daily curriculum.',
+      ageGroups: ['infant', 'toddler', 'preschool'], schedules: ['full'], weekly: [200, 250],
+      openings: true, ncStars: 4, meals: true, subsidy: true, spanish: false, curriculum: 'Creative Curriculum'
     },
     {
-      name: 'Queen City Nanny Co.',
-      initials: 'QC',
-      avatarBg: '#E76F51',
-      type: 'Nanny / babysitter',
-      city: 'Charlotte',
-      neighborhood: 'NoDa',
-      ages: 'Infant – School age (0–12 yrs)',
-      price: '$18–$22 / hour',
-      rating: 4.7,
-      bio: 'Flexible, background-checked nannies for date nights, work trips, or your regular weekly schedule.'
+      name: 'Oak City After School Club', initials: 'OC', avatarBg: '#0E4D4A',
+      type: 'After-school program', city: 'Raleigh', neighborhood: 'North Hills',
+      ages: 'School age (5–12 yrs)', price: '$90–$120 / week', rating: 5.0,
+      bio: 'Homework help, snacks, and structured activities right after the bell — with pickup from three nearby schools.',
+      ageGroups: ['school'], schedules: ['part'], weekly: [90, 120],
+      openings: true, ncStars: 4, meals: false, subsidy: true, spanish: null, curriculum: 'Homework help + enrichment'
+    },
+    {
+      name: 'Bright Beginnings Home Daycare', initials: 'BB', avatarBg: '#E76F51',
+      type: 'In-home childcare', city: 'Raleigh', neighborhood: 'Five Points',
+      ages: 'Infant – Toddler (0–3 yrs)', price: '$160–$200 / week', rating: 4.9,
+      bio: 'Small-group care for babies and toddlers in a quiet home setting, with bilingual songs and story time.',
+      ageGroups: ['infant', 'toddler'], schedules: ['full', 'part'], weekly: [160, 200],
+      openings: null, ncStars: null, meals: true, subsidy: null, spanish: true, curriculum: null
+    },
+    {
+      name: 'Queen City Nanny Co.', initials: 'QC', avatarBg: '#E76F51',
+      type: 'Nanny / babysitter', city: 'Charlotte', neighborhood: 'NoDa',
+      ages: 'Infant – School age (0–12 yrs)', price: '$18–$22 / hour', rating: 4.7,
+      bio: 'Flexible, background-checked nannies for date nights, work trips, or your regular weekly schedule.',
+      ageGroups: ['infant', 'toddler', 'preschool', 'school'], schedules: ['full', 'part', 'evening', 'dropin'], weekly: null,
+      openings: true, ncStars: 0, meals: null, subsidy: false, spanish: null, curriculum: null
+    },
+    {
+      name: 'Little Explorers Learning Center', initials: 'LE', avatarBg: '#2A9D8F',
+      type: 'Licensed daycare center', city: 'Charlotte', neighborhood: 'South End',
+      ages: 'Infant – School age (0–12 yrs)', price: '$210–$260 / week', rating: 4.8,
+      bio: 'Montessori-inspired classrooms with extended evening hours for working parents, open until 9pm.',
+      ageGroups: ['infant', 'toddler', 'preschool', 'school'], schedules: ['full', 'part', 'evening'], weekly: [210, 260],
+      openings: false, ncStars: 5, meals: true, subsidy: true, spanish: false, curriculum: 'Montessori-inspired'
     }
   ];
 
@@ -250,6 +316,221 @@
   fType.onchange = () => render(fCity.value, fType.value);
 
   render('', '');
+
+  // ---------- Match quiz ----------
+  // Answers live only in this page's memory — nothing is saved or sent anywhere.
+  const STEPS = [
+    { key: 'city', q: 'Where do you need care?', hint: 'Sample listings cover Wilmington, Raleigh, and Charlotte.',
+      opts: [['Wilmington'], ['Raleigh'], ['Charlotte']] },
+    { key: 'age', q: "How old is your child?", hint: 'Just an age range — we never ask for names or birthdates.',
+      opts: [['infant', 'Infant', 'Under 1 year'], ['toddler', 'Toddler', '1–2 years'], ['preschool', 'Preschool', '3–5 years'], ['school', 'School age', '5–12 years']] },
+    { key: 'type', q: 'What kind of care are you looking for?', hint: '',
+      opts: [['Licensed daycare center', 'Daycare center'], ['In-home childcare', 'In-home daycare'], ['Nanny / babysitter', 'Nanny / babysitter'], ['After-school program', 'After-school program'], ['any', 'No preference']] },
+    { key: 'schedule', q: 'What schedule do you need?', hint: '',
+      opts: [['full', 'Full-time', 'Weekdays, all day'], ['part', 'Part-time', 'Some days or half days'], ['evening', 'Evenings / weekends', 'Shift work, nights'], ['dropin', 'Occasional / drop-in', 'Date nights, backup care']] },
+    { key: 'budget', q: "What's your weekly budget?", hint: 'A rough range is fine.',
+      opts: [['0-125', 'Under $125'], ['125-175', '$125–$175'], ['175-225', '$175–$225'], ['225-9999', '$225+'], ['any', 'Not sure yet']] },
+    { key: 'priorities', q: 'What matters most to you?', hint: 'Pick up to 3. These count extra toward your fit.', multi: 3,
+      opts: [['openings', 'Openings right now'], ['stars', 'NC 4–5 star rated license'], ['meals', 'Meals included'], ['subsidy', 'Accepts NC childcare subsidy'], ['spanish', 'Spanish spoken'], ['curriculum', 'Structured curriculum']] }
+  ];
+
+  const AGE_LABEL = { infant: 'infants', toddler: 'toddlers', preschool: 'preschoolers', school: 'school-age kids' };
+  const SCHED_LABEL = { full: 'full-time', part: 'part-time', evening: 'evening/weekend', dropin: 'drop-in' };
+
+  let step = 0;
+  let answers = { priorities: [] };
+
+  const quizEl = document.getElementById('quiz');
+  const matchCta = document.getElementById('matchCta');
+  const filtersEl = document.getElementById('filters');
+  const resultsEl = document.getElementById('results');
+
+  function showBrowse() {
+    quizEl.hidden = true;
+    matchCta.hidden = false;
+    filtersEl.hidden = false;
+    render(fCity.value, fType.value);
+  }
+
+  function startQuiz() {
+    step = 0;
+    answers = { priorities: [] };
+    matchCta.hidden = true;
+    filtersEl.hidden = true;
+    resultsEl.innerHTML = '';
+    quizEl.hidden = false;
+    drawStep();
+  }
+
+  function drawStep() {
+    const s = STEPS[step];
+    const picked = s.multi ? answers.priorities : [answers[s.key]];
+    quizEl.innerHTML = `
+      <div class="quiz-top">
+        <span>Question ${step + 1} of ${STEPS.length}</span>
+        <button type="button" id="quizClose">Cancel</button>
+      </div>
+      <div class="progress"><div style="width:${(step / STEPS.length) * 100}%"></div></div>
+      <h2>${s.q}</h2>
+      ${s.hint ? `<p class="hint">${s.hint}</p>` : '<div style="height:14px"></div>'}
+      <div class="opts">
+        ${s.opts.map(([val, label, sub]) => `
+          <button type="button" class="opt${picked.includes(val) ? ' on' : ''}" data-val="${val}">
+            ${label || val}${sub ? `<small>${sub}</small>` : ''}
+          </button>`).join('')}
+      </div>
+      <div class="quiz-nav">
+        <button type="button" class="btn btn-ghost" id="quizBack" ${step === 0 ? 'style="visibility:hidden"' : ''}>&larr; Back</button>
+        ${s.multi ? `<button type="button" class="btn btn-coral" id="quizDone">See my matches &rarr;</button>` : ''}
+      </div>`;
+
+    quizEl.querySelectorAll('.opt').forEach(btn => btn.onclick = () => {
+      const val = btn.dataset.val;
+      if (s.multi) {
+        const list = answers.priorities;
+        if (list.includes(val)) list.splice(list.indexOf(val), 1);
+        else if (list.length < s.multi) list.push(val);
+        drawStep();
+      } else {
+        answers[s.key] = val;
+        step++;
+        drawStep();
+      }
+    });
+    document.getElementById('quizClose').onclick = showBrowse;
+    document.getElementById('quizBack').onclick = () => { step--; drawStep(); };
+    const done = document.getElementById('quizDone');
+    if (done) done.onclick = showMatches;
+  }
+
+  // Each criterion returns { state: 'yes' | 'no' | 'unk', text, ask }.
+  // 'ask' is the topic used in the pre-filled "Ask about this" message when info isn't listed.
+  function checkCriteria(p) {
+    const out = [];
+    const pri = answers.priorities;
+
+    out.push({ key: 'age', weight: 0, state: 'yes', text: `Serves ${AGE_LABEL[answers.age]}` });
+
+    if (answers.type !== 'any') {
+      out.push({ key: 'type', weight: 2, state: p.type === answers.type ? 'yes' : 'no',
+        text: p.type === answers.type ? p.type : `${p.type} (not ${answers.type.toLowerCase()})` });
+    }
+
+    const sched = SCHED_LABEL[answers.schedule];
+    out.push(p.schedules == null
+      ? { key: 'schedule', weight: 1, state: 'unk', text: 'Schedule not listed', ask: 'your schedule and hours' }
+      : { key: 'schedule', weight: 1, state: p.schedules.includes(answers.schedule) ? 'yes' : 'no',
+          text: p.schedules.includes(answers.schedule) ? `Offers ${sched} care` : `No ${sched} care` });
+
+    if (answers.budget !== 'any') {
+      const [bMin, bMax] = answers.budget.split('-').map(Number);
+      out.push(p.weekly == null
+        ? { key: 'budget', weight: 1, state: 'unk', text: 'Weekly cost not listed (hourly rates)', ask: 'your typical weekly cost' }
+        : (p.weekly[0] <= bMax && p.weekly[1] >= bMin)
+          ? { key: 'budget', weight: 1, state: 'yes', text: `Fits your budget (${p.price})` }
+          : { key: 'budget', weight: 1, state: 'no', text: p.weekly[0] > bMax ? `Above your budget (${p.price})` : `Below your range (${p.price})` });
+    }
+
+    const PRI = {
+      openings: () => p.openings == null ? ['unk', 'Openings not listed', 'current openings']
+        : p.openings ? ['yes', 'Has openings now'] : ['no', 'Currently waitlisted'],
+      stars: () => p.ncStars == null ? ['unk', 'NC star rating not listed', 'your NC license and star rating']
+        : p.ncStars === 0 ? ['no', 'Not state-rated (nanny services aren\'t licensed)']
+        : p.ncStars >= 4 ? ['yes', `NC ${p.ncStars}-star rated license`] : ['no', `NC ${p.ncStars}-star rated license`],
+      meals: () => p.meals == null ? ['unk', 'Meals not listed', 'meals']
+        : p.meals ? ['yes', 'Meals included'] : ['no', 'Snacks only'],
+      subsidy: () => p.subsidy == null ? ['unk', 'Subsidy acceptance not listed', 'whether you accept NC childcare subsidy']
+        : p.subsidy ? ['yes', 'Accepts NC childcare subsidy'] : ['no', 'Doesn\'t accept subsidy'],
+      spanish: () => p.spanish == null ? ['unk', 'Languages not listed', 'whether Spanish is spoken']
+        : p.spanish ? ['yes', 'Spanish spoken'] : ['no', 'English only'],
+      curriculum: () => p.curriculum == null ? ['unk', 'Curriculum not listed', 'your curriculum and daily routine']
+        : ['yes', `Curriculum: ${p.curriculum}`]
+    };
+    pri.forEach(k => {
+      const [state, text, ask] = PRI[k]();
+      out.push({ key: k, weight: 2, state, text, ask });
+    });
+    return out;
+  }
+
+  // Fit = points earned / points possible. Unlisted info earns half credit so a blank
+  // field neither sinks a provider nor lets an empty profile score 100%.
+  function fitScore(criteria) {
+    let earned = 0, possible = 0;
+    criteria.forEach(c => {
+      possible += c.weight;
+      if (c.state === 'yes') earned += c.weight;
+      else if (c.state === 'unk') earned += c.weight / 2;
+    });
+    return possible ? Math.round((earned / possible) * 100) : 100;
+  }
+
+  function showMatches() {
+    quizEl.hidden = true;
+    const inCity = SAMPLE_PROVIDERS.filter(p => p.city === answers.city);
+    const eligible = inCity.filter(p => p.ageGroups.includes(answers.age));
+    const ranked = eligible
+      .map(p => { const c = checkCriteria(p); return { p, c, fit: fitScore(c) }; })
+      .sort((a, b) => b.fit - a.fit || b.p.rating - a.p.rating);
+    const excluded = inCity.length - eligible.length;
+
+    const icon = { yes: '✓', no: '✕', unk: '?' };
+    const cards = ranked.map(({ p, c, fit }, i) => `
+      <div class="pcard">
+        <span class="fit${fit >= 75 ? ' high' : ''}"><strong>${fit}%</strong> fit</span>
+        <div class="pcard-top">
+          <div class="avatar" style="background:${p.avatarBg}">${p.initials}</div>
+          <div>
+            <div class="badges-row">
+              <span class="approved">✓ Personally Approved</span>
+              <span class="sample-badge">Preview</span>
+            </div>
+            <h3>${p.name}</h3>
+          </div>
+        </div>
+        <div class="deets"><strong>${p.neighborhood}, ${p.city}</strong> · ${p.ages}</div>
+        <ul class="reasons">
+          ${c.map(r => `
+            <li>
+              <span class="ic ${r.state}" aria-label="${r.state === 'yes' ? 'Match' : r.state === 'no' ? 'Not a match' : 'Unknown'}">${icon[r.state]}</span>
+              ${r.text}
+              ${r.state === 'unk' ? `<button type="button" class="ask" data-card="${i}" data-topic="${r.ask}">Ask about this</button>` : ''}
+            </li>`).join('')}
+        </ul>
+        <div class="ask-preview" id="askPrev${i}"></div>
+        <button type="button" disabled title="This is a sample listing — messaging opens once real providers are live">Message this provider</button>
+      </div>`).join('');
+
+    resultsEl.innerHTML = `
+      <div class="match-head">
+        <h2>Your matches in ${answers.city}</h2>
+        <div class="links">
+          <button type="button" id="retake">Retake quiz</button>
+          <button type="button" id="seeAll">See all listings</button>
+        </div>
+      </div>
+      <details class="fit-note">
+        <summary>What does "fit" mean?</summary>
+        <p>Fit shows how well a listing matches <em>your answers</em> — it's not a rating of quality. Your top priorities count double. If a provider hasn't listed something, it gets partial credit and an "Ask about this" button so you can find out. Your answers aren't saved anywhere.</p>
+      </details>
+      ${ranked.length
+        ? `<div class="grid">${cards}</div>`
+        : `<div class="grid"><div class="state">No sample listings in ${answers.city} serve ${AGE_LABEL[answers.age]} — once real providers join, you'll see more options here.</div></div>`}
+      ${excluded > 0 ? `<p class="excluded">${excluded} other sample listing${excluded > 1 ? 's' : ''} in ${answers.city} ${excluded > 1 ? "don't" : "doesn't"} serve ${AGE_LABEL[answers.age]}, so ${excluded > 1 ? "they're" : "it's"} not shown.</p>` : ''}`;
+
+    document.getElementById('retake').onclick = startQuiz;
+    document.getElementById('seeAll').onclick = showBrowse;
+    resultsEl.querySelectorAll('.ask').forEach(btn => btn.onclick = () => {
+      const i = btn.dataset.card;
+      const prev = document.getElementById('askPrev' + i);
+      prev.innerHTML = `<strong>In the live version</strong>, this opens a message to ${ranked[i].p.name}, pre-filled with:<br>
+        <em>"Hi! I found you on ChildCare Connect. Could you tell me about ${btn.dataset.topic}?"</em>`;
+      prev.classList.add('show');
+    });
+    window.scrollTo({ top: resultsEl.offsetTop - 80, behavior: 'smooth' });
+  }
+
+  document.getElementById('startQuiz').onclick = startQuiz;
 </script>
 
 </body>

@@ -22,9 +22,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --teal: #0E4D4A; --teal-soft: #E3EFEA; --teal-mid: #2A9D8F;
+    --teal: #1E5C57; --teal-soft: #D9F1EE; --teal-mid: #6CC3B8; --teal-pale: #ECF8F6; --teal-check: #2A7D76;
     --coral: #E76F51; --coral-soft: #FBE6DE; --coral-dark: #C9543A;
-    --cream: #FDFAF5; --ink: #11302E; --body: #4F5D58; --muted: #5C6B66;
+    --cream: #FDFAF5; --ink: #263B39; --body: #525C5E; --muted: #626C6E;
     --line: #E8E0D3; --green: #1D9E75; --amber: #EF9F27;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,7 +35,7 @@
 
   .nav { background: rgba(253,250,245,.95); border-bottom: 1px solid var(--line); padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 40; }
   .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 17px; color: var(--teal); text-decoration: none; }
-  .logo-mark { width: 34px; height: 34px; background: var(--teal); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
+  .logo-mark { width: 34px; height: 34px; background: var(--teal-soft); border-radius: 9px; display: flex; align-items: center; justify-content: center; }
   .logo span { color: var(--coral); }
   .nav a.plink { font-size: 13.5px; font-weight: 700; color: var(--muted); text-decoration: none; }
 
@@ -60,7 +60,7 @@
   .avatar { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; color: #fff; flex-shrink: 0; }
   .badges-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
   .pcard .type { display: inline-flex; align-self: flex-start; background: var(--teal-soft); color: var(--teal); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; }
-  .pcard .approved { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; background: #E3F5EC; color: var(--green); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; }
+  .pcard .approved { display: inline-flex; align-items: center; gap: 4px; align-self: flex-start; background: var(--teal-pale); color: var(--teal-check); font-size: 12px; font-weight: 700; padding: 3px 12px; border-radius: 13px; }
   .pcard h3 { font-size: 18px; }
   .pcard .deets { font-size: 13.5px; color: var(--muted); }
   .pcard .deets strong { color: var(--ink); }
@@ -85,9 +85,9 @@
 
 
   /* ---------- Match quiz ---------- */
-  .match-cta { background: var(--teal); color: #fff; border-radius: 20px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
-  .match-cta h2 { color: #fff; font-size: 20px; margin-bottom: 2px; }
-  .match-cta p { color: #CFE3DD; font-size: 14px; }
+  .match-cta { background: var(--teal-soft); color: var(--teal); border-radius: 20px; padding: 22px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .match-cta h2 { color: var(--teal); font-size: 20px; margin-bottom: 2px; }
+  .match-cta p { color: var(--teal-check); font-size: 14px; }
   .match-cta .btn-coral { flex-shrink: 0; }
 
   .quiz { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 28px 26px; max-width: 640px; margin: 0 auto 28px; }
@@ -116,11 +116,11 @@
   .fit-note p { margin-top: 6px; }
   .fit { display: inline-flex; align-items: baseline; gap: 5px; align-self: flex-start; background: var(--coral-soft); color: var(--coral-dark); border-radius: 12px; padding: 5px 12px; font-weight: 700; font-size: 13px; }
   .fit strong { font-family: 'Fraunces', serif; font-size: 22px; line-height: 1; }
-  .fit.high { background: #E3F5EC; color: var(--green); }
+  .fit.high { background: var(--teal-soft); color: var(--teal); }
   .reasons { list-style: none; display: flex; flex-direction: column; gap: 5px; font-size: 13.5px; margin: 4px 0; }
   .reasons li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .reasons .ic { width: 20px; height: 20px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-  .ic.yes { background: #E3F5EC; color: var(--green); }
+  .ic.yes { background: var(--teal-soft); color: var(--teal-check); }
   .ic.no { background: #F3EFE8; color: var(--muted); }
   .ic.unk { background: #FDF0DC; color: #B26B00; }
   .pcard .ask { margin-top: 0; opacity: 1; background: none; border: 1px solid var(--teal-mid); color: var(--teal); border-radius: 12px; padding: 2px 10px; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
@@ -137,7 +137,7 @@
 <nav class="nav">
   <a class="logo" href="index.html">
     <span class="logo-mark" aria-hidden="true">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 20.5C12 20.5 4 15.5 4 9.8 4 6.9 6.2 5 8.6 5c1.5 0 2.7.8 3.4 2 .7-1.2 1.9-2 3.4-2C17.8 5 20 6.9 20 9.8c0 5.7-8 10.7-8 10.7z" fill="#F4A88B"/></svg>
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 20.5C12 20.5 4 15.5 4 9.8 4 6.9 6.2 5 8.6 5c1.5 0 2.7.8 3.4 2 .7-1.2 1.9-2 3.4-2C17.8 5 20 6.9 20 9.8c0 5.7-8 10.7-8 10.7z" fill="#E76F51"/></svg>
     </span>
     ChildCare&nbsp;<span>Connect</span>
   </a>
@@ -206,7 +206,7 @@
   // (null = not listed, 0 = not state-rated), meals, subsidy, spanish, curriculum. null always means "not listed".
   const SAMPLE_PROVIDERS = [
     {
-      name: 'Little Sprouts Daycare', initials: 'LS', avatarBg: '#0E4D4A',
+      name: 'Little Sprouts Daycare', initials: 'LS', avatarBg: '#2A7D76',
       type: 'Licensed daycare center', city: 'Wilmington', neighborhood: 'Wrightsville Beach Rd',
       ages: 'Infant – Preschool (0–5 yrs)', price: '$180–$220 / week', rating: 4.9,
       bio: 'A bright, play-based daycare with a fenced outdoor garden and small class sizes. Now enrolling for fall.',
@@ -222,7 +222,7 @@
       openings: false, ncStars: 4, meals: true, subsidy: null, spanish: true, curriculum: null
     },
     {
-      name: 'Cape Fear Learning Academy', initials: 'CF', avatarBg: '#2A9D8F',
+      name: 'Cape Fear Learning Academy', initials: 'CF', avatarBg: '#3E9990',
       type: 'Licensed daycare center', city: 'Wilmington', neighborhood: 'Monkey Junction',
       ages: 'Infant – Preschool (0–5 yrs)', price: '$200–$250 / week', rating: 4.6,
       bio: 'A larger center with separate infant, toddler, and pre-K classrooms and a structured daily curriculum.',
@@ -230,7 +230,7 @@
       openings: true, ncStars: 4, meals: true, subsidy: true, spanish: false, curriculum: 'Creative Curriculum'
     },
     {
-      name: 'Oak City After School Club', initials: 'OC', avatarBg: '#0E4D4A',
+      name: 'Oak City After School Club', initials: 'OC', avatarBg: '#2A7D76',
       type: 'After-school program', city: 'Raleigh', neighborhood: 'North Hills',
       ages: 'School age (5–12 yrs)', price: '$90–$120 / week', rating: 5.0,
       bio: 'Homework help, snacks, and structured activities right after the bell — with pickup from three nearby schools.',
@@ -254,7 +254,7 @@
       openings: true, ncStars: 0, meals: null, subsidy: false, spanish: null, curriculum: null
     },
     {
-      name: 'Little Explorers Learning Center', initials: 'LE', avatarBg: '#2A9D8F',
+      name: 'Little Explorers Learning Center', initials: 'LE', avatarBg: '#3E9990',
       type: 'Licensed daycare center', city: 'Charlotte', neighborhood: 'South End',
       ages: 'Infant – School age (0–12 yrs)', price: '$210–$260 / week', rating: 4.8,
       bio: 'Montessori-inspired classrooms with extended evening hours for working parents, open until 9pm.',
